@@ -66,7 +66,31 @@ export class CDPRelayServer {
 
     this._resetExtensionConnection();
     this._wss = new wsServer({ server });
-    this._wss.on('connection', this._onConnection.bind(this));
+    this._wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => {
+      const url = new URL(`http://localhost${request.url}`);
+      debugLogger(`New connection to ${url.pathname}`);
+      if (url.pathname === this._cdpPath) {
+        this._handlePlaywrightConnection(ws);
+      } else if (url.pathname === this._extensionPath) {
+        if (this._extensionConnection) {
+          ws.close(1000, 'Another extension connection already established');
+          return;
+        }
+        this._extensionConnection = new ExtensionConnection(ws);
+        this._extensionConnection.onclose = (c, reason) => {
+          debugLogger('Extension WebSocket closed:', reason, c === this._extensionConnection);
+          if (this._extensionConnection !== c)
+            return;
+          this._resetExtensionConnection();
+          this._closePlaywrightConnection(`Extension disconnected: ${reason}`);
+        };
+        this._extensionConnection.onmessage = this._handleExtensionMessage.bind(this);
+        this._extensionConnectionPromise.resolve();
+      } else {
+        debugLogger(`Invalid path: ${url.pathname}`);
+        ws.close(4004, 'Invalid path');
+      }
+    });
   }
 
   cdpEndpoint() {
@@ -88,18 +112,7 @@ export class CDPRelayServer {
     this._closeExtensionConnection(reason);
   }
 
-  private _onConnection(ws: WebSocket, request: http.IncomingMessage): void {
-    const url = new URL(`http://localhost${request.url}`);
-    debugLogger(`New connection to ${url.pathname}`);
-    if (url.pathname === this._cdpPath) {
-      this._handlePlaywrightConnection(ws);
-    } else if (url.pathname === this._extensionPath) {
-      this._handleExtensionConnection(ws);
-    } else {
-      debugLogger(`Invalid path: ${url.pathname}`);
-      ws.close(4004, 'Invalid path');
-    }
-  }
+
 
   private _handlePlaywrightConnection(ws: WebSocket): void {
     if (this._playwrightConnection) {
@@ -148,27 +161,12 @@ export class CDPRelayServer {
     this._playwrightConnection = null;
   }
 
-  private _handleExtensionConnection(ws: WebSocket): void {
-    if (this._extensionConnection) {
-      ws.close(1000, 'Another extension connection already established');
-      return;
-    }
-    this._extensionConnection = new ExtensionConnection(ws);
-    this._extensionConnection.onclose = (c, reason) => {
-      debugLogger('Extension WebSocket closed:', reason, c === this._extensionConnection);
-      if (this._extensionConnection !== c)
-        return;
-      this._resetExtensionConnection();
-      this._closePlaywrightConnection(`Extension disconnected: ${reason}`);
-    };
-    this._extensionConnection.onmessage = this._handleExtensionMessage.bind(this);
-    this._extensionConnectionPromise.resolve();
-  }
+
 
   private _handleExtensionMessage(message: ExtensionEventMessage) {
     if (message.method === 'forwardCDPEvent') {
       const { method, params, sessionId } = message.params;
-      
+
       if (method === 'Target.attachedToTarget') {
         const targetParams = params as Protocol.Target.AttachedToTargetEvent;
         this._connectedTargets.set(targetParams.sessionId, {
@@ -176,25 +174,25 @@ export class CDPRelayServer {
           targetId: targetParams.targetInfo.targetId,
           targetInfo: targetParams.targetInfo
         });
-        
+
         debugLogger('\x1b[33m← Extension:\x1b[0m', `Target.attachedToTarget sessionId=${targetParams.sessionId}, targetId=${targetParams.targetInfo.targetId}`);
-        
+
         this._sendToPlaywright({
           method: 'Target.attachedToTarget',
           params: targetParams
         } as CDPEvent);
-        
+
       } else if (method === 'Target.detachedFromTarget') {
         const detachParams = params as Protocol.Target.DetachedFromTargetEvent;
         this._connectedTargets.delete(detachParams.sessionId);
-        
+
         debugLogger('\x1b[33m← Extension:\x1b[0m', `Target.detachedFromTarget sessionId=${detachParams.sessionId}`);
-        
+
         this._sendToPlaywright({
           method: 'Target.detachedFromTarget',
           params: detachParams
         } as CDPEvent);
-        
+
       } else {
         this._sendToPlaywright({
           sessionId,
@@ -208,8 +206,94 @@ export class CDPRelayServer {
   private async _handlePlaywrightMessage(message: CDPCommand): Promise<void> {
     debugLogger('\x1b[36m← Playwright:\x1b[0m', `${message.method} (id=${message.id})`);
     const { id, sessionId, method, params } = message;
+
+    const forwardToExtension = async (method: string, params: any, sessionId: string | undefined): Promise<any> => {
+      if (!this._extensionConnection)
+        throw new Error('Extension not connected');
+
+      return await this._extensionConnection.send({
+        method: 'forwardCDPCommand',
+        params: { sessionId, method, params }
+      });
+    };
+
+    const handleCDPCommand = async (method: string, params: any, sessionId: string | undefined): Promise<any> => {
+      switch (method) {
+        case 'Browser.getVersion': {
+          return {
+            protocolVersion: '1.3',
+            product: 'Chrome/Extension-Bridge',
+            revision: '1.0.0',
+            userAgent: 'CDP-Bridge-Server/1.0.0',
+            jsVersion: 'V8',
+          } satisfies Protocol.Browser.GetVersionResponse;
+        }
+        case 'Browser.setDownloadBehavior': {
+          return { };
+        }
+        case 'Target.setAutoAttach': {
+          if (sessionId) {
+            break;
+          }
+
+          debugLogger('Target.setAutoAttach received (manual attach mode)');
+          debugLogger('Sending Target.attachedToTarget events for existing targets:', this._connectedTargets.size);
+
+          for (const target of this._connectedTargets.values()) {
+            debugLogger('Sending Target.attachedToTarget for sessionId:', target.sessionId, 'targetId:', target.targetId);
+            this._sendToPlaywright({
+              method: 'Target.attachedToTarget',
+              params: {
+                sessionId: target.sessionId,
+                targetInfo: {
+                  ...target.targetInfo,
+                  attached: true
+                },
+                waitingForDebugger: false
+              }
+            } satisfies CDPEvent);
+          }
+
+          return {};
+        }
+        case 'Target.getTargetInfo': {
+          const targetId = params?.targetId;
+
+          if (targetId) {
+            for (const target of this._connectedTargets.values()) {
+              if (target.targetId === targetId) {
+                return { targetInfo: target.targetInfo };
+              }
+            }
+          }
+
+          if (sessionId) {
+            const target = this._connectedTargets.get(sessionId);
+            if (target) {
+              return { targetInfo: target.targetInfo };
+            }
+          }
+
+          const firstTarget = this._connectedTargets.values().next().value;
+          return { targetInfo: firstTarget?.targetInfo };
+        }
+        case 'Target.getTargets': {
+          return {
+            targetInfos: Array.from(this._connectedTargets.values()).map(t => ({
+              ...t.targetInfo,
+              attached: true,
+            }))
+          };
+        }
+        case 'Target.closeTarget': {
+          break;
+        }
+      }
+      return await forwardToExtension(method, params, sessionId);
+    };
+
     try {
-      const result = await this._handleCDPCommand(method, params, sessionId);
+      const result = await handleCDPCommand(method, params, sessionId);
       this._sendToPlaywright({ id, sessionId, result });
     } catch (e) {
       debugLogger('\x1b[31mError in the extension:\x1b[0m', e);
@@ -221,94 +305,9 @@ export class CDPRelayServer {
     }
   }
 
-  private async _handleCDPCommand(method: string, params: any, sessionId: string | undefined): Promise<any> {
-    switch (method) {
-      case 'Browser.getVersion': {
-        return {
-          protocolVersion: '1.3',
-          product: 'Chrome/Extension-Bridge',
-          revision: '1.0.0',
-          userAgent: 'CDP-Bridge-Server/1.0.0',
-          jsVersion: 'V8',
-        } satisfies Protocol.Browser.GetVersionResponse;
-      }
-      case 'Browser.setDownloadBehavior': {
-        return { };
-      }
-      case 'Target.setAutoAttach': {
-        if (sessionId) {
-          break;
-        }
-        
-        debugLogger('Target.setAutoAttach received (manual attach mode)');
-        debugLogger('Sending Target.attachedToTarget events for existing targets:', this._connectedTargets.size);
-        
-        for (const target of this._connectedTargets.values()) {
-          debugLogger('Sending Target.attachedToTarget for sessionId:', target.sessionId, 'targetId:', target.targetId);
-          this._sendToPlaywright({
-            method: 'Target.attachedToTarget',
-            params: {
-              sessionId: target.sessionId,
-              targetInfo: {
-                ...target.targetInfo,
-                attached: true
-              },
-              waitingForDebugger: false
-            }
-          } as CDPEvent);
-        }
-        
-        return {};
-      }
-      case 'Target.getTargetInfo': {
-        const targetId = params?.targetId;
-        
-        if (targetId) {
-          for (const target of this._connectedTargets.values()) {
-            if (target.targetId === targetId) {
-              return { targetInfo: target.targetInfo };
-            }
-          }
-        }
-        
-        if (sessionId) {
-          const target = this._connectedTargets.get(sessionId);
-          if (target) {
-            return { targetInfo: target.targetInfo };
-          }
-        }
-        
-        const firstTarget = this._connectedTargets.values().next().value;
-        return { targetInfo: firstTarget?.targetInfo };
-      }
-      case 'Target.getTargets': {
-        return {
-          targetInfos: Array.from(this._connectedTargets.values()).map(t => ({
-            ...t.targetInfo,
-            attached: true,
-          }))
-        };
-      }
-      case 'Target.closeTarget': {
-        break;
-      }
-    }
-    return await this._forwardToExtension(method, params, sessionId);
-  }
-
-  private async _forwardToExtension(method: string, params: any, sessionId: string | undefined): Promise<any> {
-    if (!this._extensionConnection)
-      throw new Error('Extension not connected');
-    
-    return await this._extensionConnection.send({ 
-      method: 'forwardCDPCommand', 
-      params: { sessionId, method, params } 
-    });
-  }
-
   private _sendToPlaywright(message: CDPResponse | CDPEvent): void {
-    const logMessage = 'method' in message && message.method 
-      ? message.method 
+    const logMessage = 'method' in message && message.method
+      ? message.method
       : `response(id=${'id' in message ? message.id : 'unknown'})`;
     debugLogger('\x1b[32m→ Playwright:\x1b[0m', logMessage);
     this._playwrightConnection?.send(JSON.stringify(message));
@@ -325,9 +324,54 @@ class ExtensionConnection {
 
   constructor(ws: WebSocket) {
     this._ws = ws;
-    this._ws.on('message', this._onMessage.bind(this));
-    this._ws.on('close', this._onClose.bind(this));
-    this._ws.on('error', this._onError.bind(this));
+
+    this._ws.on('message', (event: websocket.RawData) => {
+      const eventData = event.toString();
+      let parsedJson;
+      try {
+        parsedJson = JSON.parse(eventData);
+      } catch (e: any) {
+        debugLogger(`<closing ws> Closing websocket due to malformed JSON. eventData=${eventData} e=${e?.message}`);
+        this._ws.close();
+        return;
+      }
+
+      const handleParsedMessage = (object: ExtensionMessage) => {
+        if ('id' in object && this._callbacks.has(object.id)) {
+          const callback = this._callbacks.get(object.id)!;
+          this._callbacks.delete(object.id);
+          if (object.error) {
+            const error = callback.error;
+            error.message = object.error;
+            callback.reject(error);
+          } else {
+            callback.resolve(object.result);
+          }
+        } else if ('id' in object) {
+          debugLogger('← Extension: unexpected response', object);
+        } else {
+          this.onmessage?.(object as ExtensionEventMessage);
+        }
+      };
+
+      try {
+        handleParsedMessage(parsedJson);
+      } catch (e: any) {
+        debugLogger(`<closing ws> Closing websocket due to failed onmessage callback. eventData=${eventData} e=${e?.message}`);
+        this._ws.close();
+      }
+    });
+
+    this._ws.on('close', (event: websocket.CloseEvent) => {
+      debugLogger(`<ws closed> code=${event.code} reason=${event.reason}`);
+      this._dispose();
+      this.onclose?.(this, event.reason);
+    });
+
+    this._ws.on('error', (event: websocket.ErrorEvent) => {
+      debugLogger(`<ws error> message=${event.message} type=${event.type} target=${event.target}`);
+      this._dispose();
+    });
   }
 
   async send(command: Omit<ExtensionCommandMessage, 'id'>): Promise<any> {
@@ -345,53 +389,6 @@ class ExtensionConnection {
     debugLogger('closing extension connection:', message);
     if (this._ws.readyState === ws.OPEN)
       this._ws.close(1000, message);
-  }
-
-  private _onMessage(event: websocket.RawData) {
-    const eventData = event.toString();
-    let parsedJson;
-    try {
-      parsedJson = JSON.parse(eventData);
-    } catch (e: any) {
-      debugLogger(`<closing ws> Closing websocket due to malformed JSON. eventData=${eventData} e=${e?.message}`);
-      this._ws.close();
-      return;
-    }
-    try {
-      this._handleParsedMessage(parsedJson);
-    } catch (e: any) {
-      debugLogger(`<closing ws> Closing websocket due to failed onmessage callback. eventData=${eventData} e=${e?.message}`);
-      this._ws.close();
-    }
-  }
-
-  private _handleParsedMessage(object: ExtensionMessage) {
-    if ('id' in object && this._callbacks.has(object.id)) {
-      const callback = this._callbacks.get(object.id)!;
-      this._callbacks.delete(object.id);
-      if (object.error) {
-        const error = callback.error;
-        error.message = object.error;
-        callback.reject(error);
-      } else {
-        callback.resolve(object.result);
-      }
-    } else if ('id' in object) {
-      debugLogger('← Extension: unexpected response', object);
-    } else {
-      this.onmessage?.(object as ExtensionEventMessage);
-    }
-  }
-
-  private _onClose(event: websocket.CloseEvent) {
-    debugLogger(`<ws closed> code=${event.code} reason=${event.reason}`);
-    this._dispose();
-    this.onclose?.(this, event.reason);
-  }
-
-  private _onError(event: websocket.ErrorEvent) {
-    debugLogger(`<ws error> message=${event.message} type=${event.type} target=${event.target}`);
-    this._dispose();
   }
 
   private _dispose() {
