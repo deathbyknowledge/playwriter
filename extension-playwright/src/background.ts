@@ -25,12 +25,12 @@ class SimplifiedExtension {
 
   constructor() {
     debugLog(`Using relay URL: ${RELAY_URL}`);
-    chrome.tabs.onRemoved.addListener(this._onTabRemoved.bind(this));
-    chrome.tabs.onActivated.addListener(this._onTabActivated.bind(this));
-    chrome.action.onClicked.addListener(this._onActionClicked.bind(this));
+    chrome.tabs.onRemoved.addListener(this._onTabRemoved);
+    chrome.tabs.onActivated.addListener(this._onTabActivated);
+    chrome.action.onClicked.addListener(this._onActionClicked);
   }
 
-  private async _onActionClicked(tab: chrome.tabs.Tab): Promise<void> {
+  private _onActionClicked = async (tab: chrome.tabs.Tab): Promise<void> => {
     if (!tab.id) {
       debugLog('No tab ID available');
       return;
@@ -41,23 +41,7 @@ class SimplifiedExtension {
     } else {
       await this._connectTab(tab.id);
     }
-  }
-
-  private async _waitForServer(): Promise<void> {
-    const httpUrl = 'http://localhost:9988';
-
-    while (true) {
-      try {
-        debugLog('Checking if relay server is available...');
-        await fetch(httpUrl, { method: 'HEAD' });
-        debugLog('Server is available');
-        return;
-      } catch (error: any) {
-        debugLog(`Server not available, retrying in 1 second...`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-  }
+  };
 
   private async _connectTab(tabId: number): Promise<void> {
     try {
@@ -67,7 +51,18 @@ class SimplifiedExtension {
       if (!this._connection) {
         debugLog('No existing connection, creating new relay connection');
         debugLog('Waiting for server at http://localhost:9988...');
-        await this._waitForServer();
+        
+        // Wait for server to be available
+        while (true) {
+          try {
+            await fetch('http://localhost:9988', { method: 'HEAD' });
+            debugLog('Server is available');
+            break;
+          } catch (error: any) {
+            debugLog('Server not available, retrying in 1 second...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
         
         debugLog('Server is ready, creating WebSocket connection to:', RELAY_URL);
         const socket = new WebSocket(RELAY_URL);
@@ -239,19 +234,19 @@ class SimplifiedExtension {
     }
   }
 
-  private async _onTabRemoved(tabId: number): Promise<void> {
+  private _onTabRemoved = async (tabId: number): Promise<void> => {
     debugLog('Tab removed event for tab:', tabId, 'is connected:', this._connectedTabs.has(tabId));
     if (!this._connectedTabs.has(tabId)) return;
     
     debugLog(`Connected tab ${tabId} was closed, disconnecting`);
     await this._disconnectTab(tabId);
-  }
+  };
 
-  private async _onTabActivated(activeInfo: chrome.tabs.TabActiveInfo): Promise<void> {
+  private _onTabActivated = async (activeInfo: chrome.tabs.TabActiveInfo): Promise<void> => {
     const isConnected = this._connectedTabs.has(activeInfo.tabId);
     debugLog('Tab activated:', activeInfo.tabId, 'is connected:', isConnected);
     await this._updateIcon(activeInfo.tabId, isConnected ? 'connected' : 'disconnected');
-  }
+  };
 }
 
 new SimplifiedExtension();
