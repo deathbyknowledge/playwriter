@@ -340,27 +340,27 @@ export async function startPlayWriterCDPRelayServer({ port = 19988, host = '127.
           return
         }
 
-        logger.log('Extension connecting, resetting server state')
-        
-        // Clear stale targets from previous connections
-        const staleTargetCount = connectedTargets.size
-        if (staleTargetCount > 0) {
-          logger.log(`Clearing ${staleTargetCount} stale targets from previous connection`)
-          connectedTargets.clear()
-        }
-        
-        // Reject any pending requests from previous connection
-        const pendingRequestCount = extensionPendingRequests.size
-        if (pendingRequestCount > 0) {
-          logger.log(`Rejecting ${pendingRequestCount} pending requests from previous connection`)
-          for (const pending of extensionPendingRequests.values()) {
-            pending.reject(new Error('Extension reconnected, request cancelled'))
-          }
-          extensionPendingRequests.clear()
-        }
-        
-        // Reset message ID counter
-        extensionMessageId = 0
+        // logger.log('Extension connecting, resetting server state')
+
+        // // Clear stale targets from previous connections
+        // const staleTargetCount = connectedTargets.size
+        // if (staleTargetCount > 0) {
+        //   logger.log(`Clearing ${staleTargetCount} stale targets from previous connection`)
+        //   connectedTargets.clear()
+        // }
+
+        // // Reject any pending requests from previous connection
+        // const pendingRequestCount = extensionPendingRequests.size
+        // if (pendingRequestCount > 0) {
+        //   logger.log(`Rejecting ${pendingRequestCount} pending requests from previous connection`)
+        //   for (const pending of extensionPendingRequests.values()) {
+        //     pending.reject(new Error('Extension reconnected, request cancelled'))
+        //   }
+        //   extensionPendingRequests.clear()
+        // }
+
+        // // Reset message ID counter
+        // extensionMessageId = 0
 
         extensionWs = ws
         logger.log('Extension connected with clean state')
