@@ -23,6 +23,17 @@ const useExtensionStore = create<ExtensionState>(() => ({
   errorText: undefined,
 }));
 
+async function resetDebugger() {
+  let targets = await chrome.debugger.getTargets()
+  targets = targets.filter(x => x.tabId && x.attached)
+  console.log(`found ${targets.length} existing debugger targets. detaching them before background script starts`)
+  console.log(targets)
+  for (const target of targets) {
+    await chrome.debugger.detach({tabId: target.tabId})
+  }
+}
+resetDebugger()
+
 const icons = {
   connected: {
     path: {
@@ -330,10 +341,10 @@ async function reconnect(): Promise<void> {
     } catch (error: any) {
       debugLog('=== Reconnection failed ===', error);
 
-      useExtensionStore.setState({ 
-        connectedTabs: new Map(), 
-        connectionState: 'error', 
-        errorText: 'Reconnection failed - Click to retry' 
+      useExtensionStore.setState({
+        connectedTabs: new Map(),
+        connectionState: 'error',
+        errorText: 'Reconnection failed - Click to retry'
       });
     }
   }
