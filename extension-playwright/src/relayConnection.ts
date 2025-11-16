@@ -43,12 +43,12 @@ export class RelayConnection {
   private _ws: WebSocket;
   private _closed = false;
   private _onCloseCallback?: () => void;
-  private _onTabDetachedCallback?: (tabId: number) => void;
+  private _onTabDetachedCallback?: (tabId: number, reason: chrome.debugger.DetachReason) => void
 
   constructor({ ws, onClose, onTabDetached }: {
     ws: WebSocket;
     onClose?: () => void;
-    onTabDetached?: (tabId: number) => void;
+    onTabDetached?: (tabId: number, reason: `${chrome.debugger.DetachReason}`) => void;
   }) {
     this._ws = ws;
     this._onCloseCallback = onClose;
@@ -172,7 +172,7 @@ export class RelayConnection {
 
     this._attachedTabs.delete(tabId);
     debugLog('Removed tab from _attachedTabs map. Remaining tabs:', this._attachedTabs.size);
-    
+
     chrome.debugger.detach(tab.debuggee)
       .then(() => {
         debugLog('Successfully detached debugger from tab:', tabId);
@@ -197,6 +197,7 @@ export class RelayConnection {
     debugLog('Connection closing, attached tabs count:', this._attachedTabs.size);
     this._closed = true;
 
+
     chrome.debugger.onEvent.removeListener(this._onDebuggerEvent);
     chrome.debugger.onDetach.removeListener(this._onDebuggerDetach);
 
@@ -213,7 +214,7 @@ export class RelayConnection {
           debugLog('Error detaching from tab:', tabId, err.message);
         });
     }
-    
+
     this._attachedTabs.clear();
     debugLog('All tabs cleared from map. Chrome automation bar should disappear in a few seconds.');
 
@@ -253,7 +254,7 @@ export class RelayConnection {
     });
   };
 
-  private _onDebuggerDetach = (source: chrome.debugger.Debuggee, reason: string): void => {
+  private _onDebuggerDetach = (source: chrome.debugger.Debuggee, reason: `${chrome.debugger.DetachReason}`): void => {
     const tabId = source.tabId;
     debugLog('_onDebuggerDetach called for tab:', tabId, 'reason:', reason, 'isAttached:', tabId ? this._attachedTabs.has(tabId) : false);
 
@@ -264,8 +265,8 @@ export class RelayConnection {
 
     debugLog(`Manual debugger detachment detected for tab ${tabId}: ${reason}`);
     debugLog('User closed debugger via Chrome automation bar, calling onTabDetached callback');
-    this._onTabDetachedCallback?.(tabId);
-    
+    this._onTabDetachedCallback?.(tabId, reason);
+
     this.detachTab(tabId);
   };
 
@@ -280,26 +281,26 @@ export class RelayConnection {
       if (method === 'Target.createTarget') {
         const url = params?.url || 'about:blank';
         debugLog('Creating new tab with URL:', url);
-        
+
         const tab = await chrome.tabs.create({ url, active: false });
         if (!tab.id) {
           throw new Error('Failed to create tab');
         }
 
         debugLog('Created tab:', tab.id, 'waiting for it to load...');
-        
+
         // Wait a bit for tab to initialize
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         // Attach to the new tab
         const targetInfo = await this.attachTab(tab.id);
-        
+
         return { targetId: targetInfo.targetId };
       }
 
       if (method === 'Target.closeTarget' && params?.targetId) {
         debugLog('Closing target:', params.targetId);
-        
+
         for (const [tabId, tab] of this._attachedTabs) {
           if (tab.targetId === params.targetId) {
             debugLog('Found tab to close:', tabId);
@@ -307,7 +308,7 @@ export class RelayConnection {
             return { success: true };
           }
         }
-        
+
         debugLog('Target not found:', params.targetId);
         throw new Error(`Target not found: ${params.targetId}`);
       }
