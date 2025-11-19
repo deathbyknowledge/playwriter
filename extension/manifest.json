@@ -4,8 +4,7 @@
   "version": "0.0.48",
   "description": "Playwright MCP. 90% less context window. 10x more capable (full playwright API)",
   "permissions": [
-    "debugger",
-    "activeTab"
+    "debugger"
   ],
   "host_permissions": [
     "<all_urls>"
