@@ -1,5 +1,5 @@
 import { RelayConnection, debugLog } from './relayConnection'
-import { create } from 'zustand'
+import { createStore } from 'zustand/vanilla'
 
 // Relay URL - fixed port for MCP bridge
 const RELAY_URL = 'ws://localhost:19988/extension'
@@ -21,7 +21,7 @@ interface ExtensionState {
   errorText: string | undefined
 }
 
-const useExtensionStore = create<ExtensionState>(() => ({
+const useExtensionStore = createStore<ExtensionState>((set) => ({
   connection: undefined,
   connectedTabs: new Map(),
   connectionState: 'disconnected',
@@ -29,8 +29,50 @@ const useExtensionStore = create<ExtensionState>(() => ({
   errorText: undefined,
 }))
 
+
 // @ts-ignore
-globalThis.state = useExtensionStore
+globalThis.toggleExtensionForActiveTab = toggleExtensionForActiveTab
+
+async function toggleExtensionForActiveTab(): Promise<{ isConnected: boolean; state: ExtensionState }> {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+  const tab = tabs[0]
+  if (!tab?.id) throw new Error('No active tab found')
+
+  await onActionClicked(tab)
+
+  // Wait for state to settle
+  await new Promise<void>((resolve) => {
+    const check = () => {
+      const state = useExtensionStore.getState()
+      const tabInfo = state.connectedTabs.get(tab.id!)
+      
+      // If we are connecting, wait
+      if (tabInfo?.state === 'connecting') {
+        setTimeout(check, 100)
+        return
+      }
+      
+      // Also wait if global connection is reconnecting
+      if (state.connectionState === 'reconnecting') {
+         setTimeout(check, 100)
+         return
+      }
+
+      resolve()
+    }
+    check()
+  })
+
+  const state = useExtensionStore.getState()
+  const isConnected = state.connectedTabs.has(tab.id) && state.connectedTabs.get(tab.id)?.state === 'connected'
+  
+  return { isConnected, state }
+}
+
+declare global {
+  var state: typeof useExtensionStore
+  var toggleExtensionForActiveTab: () => Promise<{ isConnected: boolean; state: ExtensionState }>
+}
 
 async function resetDebugger() {
   let targets = await chrome.debugger.getTargets()
