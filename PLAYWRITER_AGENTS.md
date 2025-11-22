@@ -48,7 +48,7 @@ you can run singular tests with `-t "testname"`
 
 each test() block should reset the extension connection to make sure tests are independent.
 
-NEVER call browser.close() in the tests
+NEVER call browser.close() in tests or any other code that interacts with our CDP endpoint
 
 remember that every time the extension is activated in a tab that tab gets added to the available pages. so if you toggle the extension and then do .newPage() there will be 2 pages, not 1.
 
