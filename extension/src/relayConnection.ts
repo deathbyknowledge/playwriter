@@ -53,6 +53,20 @@ function safeSerialize(arg: any): string {
         if (typeof value === 'object' && value !== null) {
           if (seen.has(value)) return '[Circular]';
           seen.add(value);
+
+          if (value instanceof Map) {
+            return {
+              dataType: 'Map',
+              value: Array.from(value.entries())
+            };
+          }
+
+          if (value instanceof Set) {
+            return {
+              dataType: 'Set',
+              value: Array.from(value.values())
+            };
+          }
         }
         return value;
       });
@@ -394,7 +408,7 @@ export class RelayConnection {
       //
       // To fix this, we intercept 'Runtime.enable' and force a reset:
       // 1. We send 'Runtime.disable'. This clears Chrome's internal Runtime state for this session.
-      // 2. We wait a brief moment (50ms) to ensure the disable command propagates.
+      // 2. We wait a brief moment (100ms) to ensure the disable command propagates.
       // 3. Then we allow the original 'Runtime.enable' command to proceed.
       //
       // This sequence forces Chrome to treat the enablement as a fresh start, causing it to
@@ -404,7 +418,7 @@ export class RelayConnection {
         logger.debug('Runtime.enable called, disabling first to force context refresh for tab:', targetTab.debuggee.tabId);
         try {
           await chrome.debugger.sendCommand(debuggerSession, 'Runtime.disable');
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 100));
         } catch (e) {
           logger.debug('Error disabling Runtime (ignoring):', e);
         }

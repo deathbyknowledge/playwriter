@@ -21,6 +21,14 @@ the chrome window can have more than one page. you can see other pages with `con
 
 you can control the browser in collaboration with the user. the user can help you get unstuck from  captchas or difficult to find elements or reproducing a bug
 
+## capabilities
+
+examples of things playwriter MCP can do:
+- monitor logs for a page while the user reproduces a but to let you understand what is causing a bug
+- monitor logs while also controlling the page, then read collected logs and debug an issue
+- monitor xhr network requests while scrolling an infinite scroll page to extract data from a website
+- get accessibility snapshot to see clickable elements on the page, then click or interact with them to automate a task like ordering pizza
+
 ## finding the page to execute code in
 
 if you plan to control a specific page for an url you can store it in `state` so you can reuse it later on:
