@@ -14,12 +14,17 @@ import { spawn } from 'node:child_process'
 const execAsync = promisify(exec)
 
 async function getExtensionServiceWorker(context: BrowserContext) {
-    let serviceWorker = context.serviceWorkers().find(sw => sw.url().startsWith('chrome-extension://'))
+
+    let serviceWorkers = context.serviceWorkers().filter(sw => sw.url().startsWith('chrome-extension://'))
+
+
+    let serviceWorker = serviceWorkers[0]
     if (!serviceWorker) {
         serviceWorker = await context.waitForEvent('serviceworker', {
             predicate: (sw) => sw.url().startsWith('chrome-extension://')
         })
     }
+
 
     return serviceWorker
 }
@@ -109,10 +114,7 @@ describe('MCP Server Tests', () => {
         })
 
         // Wait for service worker and connect
-        let serviceWorker = browserContext.serviceWorkers()[0]
-        if (!serviceWorker) {
-            serviceWorker = await browserContext.waitForEvent('serviceworker')
-        }
+        const serviceWorker = await getExtensionServiceWorker(browserContext)
 
         // Create a page to attach to
         const page = await browserContext.newPage()
@@ -299,8 +301,8 @@ describe('MCP Server Tests', () => {
         expect(result.isConnected).toBe(true)
 
         // 3. Verify we can connect via direct CDP and see the page
-        const cdpUrl = getCdpUrl()
-        let directBrowser = await chromium.connectOverCDP(cdpUrl)
+
+        let directBrowser = await chromium.connectOverCDP(getCdpUrl())
         let contexts = directBrowser.contexts()
         let pages = contexts[0].pages()
 
@@ -321,7 +323,7 @@ describe('MCP Server Tests', () => {
         // connecting to relay will succeed, but listing pages should NOT show our page
 
         // Connect to relay again
-        directBrowser = await chromium.connectOverCDP(cdpUrl)
+        directBrowser = await chromium.connectOverCDP(getCdpUrl())
         contexts = directBrowser.contexts()
         pages = contexts[0].pages()
 
@@ -338,7 +340,7 @@ describe('MCP Server Tests', () => {
 
         // 7. Verify page is back
 
-        directBrowser = await chromium.connectOverCDP(cdpUrl)
+        directBrowser = await chromium.connectOverCDP(getCdpUrl())
         // Wait a bit for targets to populate
         await new Promise(r => setTimeout(r, 500))
 

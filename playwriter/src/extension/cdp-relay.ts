@@ -344,6 +344,11 @@ export async function startPlayWriterCDPRelayServer({ port = 19988, host = '127.
             pending.reject(new Error('Extension connection replaced'))
           }
           extensionPendingRequests.clear()
+
+          for (const client of playwrightClients.values()) {
+            client.ws.close(1000, 'Extension Replaced')
+          }
+          playwrightClients.clear()
         }
 
         extensionWs = ws
