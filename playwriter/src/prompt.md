@@ -6,6 +6,8 @@ execute tool let you run playwright js code snippets to control user Chrome wind
 
 you can extract data from your script using `console.log`. But remember that console.log in `page.evaluate` callbacks are run in the browser, so you will not see them. Instead log the evaluate result
 
+to keep some variables between calls, you can use `state` global object. constants and variables are reset between runs. Instead use code like `state.newPage = await browser.newPage();` to reuse the created page in later calls
+
 you MUST use multiple execute tool calls for running complex logic. this ensures 
 - you have clear understanding of intermediate state between interactions
 - you can split finding an element from interacting with it. making it simpler to understand what is the issue when an action is not successful
