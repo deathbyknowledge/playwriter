@@ -516,6 +516,7 @@ server.tool(
             clearAllLogs,
             resetPlaywright: vmContextObj.resetPlaywright,
             require,
+            // TODO --experimental-vm-modules is needed to make import work in vm
             import: vmContextObj.import,
             ...usefulGlobals,
           }

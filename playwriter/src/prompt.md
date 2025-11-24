@@ -17,8 +17,7 @@ it will control an existing user Chrome window. The js code  will be run in a sa
 - state: an object shared between runs that you can mutate to persist functions and objects. for example `state.requests = []` to monitor network requests between runs
 - context: the playwright browser context. you can do things like `await context.pages()` to see user connected pages
 - page, the first page the user opened and made it accessible to this MCP. do things like `page.url()` to see current url. assume the user wants you to use this page for your playwright code
-- require: node's require function to load CommonJS modules
-- import: async import function to dynamically import ES modules. for example `const fs = await import('node:fs')`
+- require: node's require function to load modules
 - all standard Node.js globals: setTimeout, setInterval, clearTimeout, clearInterval, URL, URLSearchParams, fetch, Buffer, TextEncoder, TextDecoder, crypto, AbortController, AbortSignal, structuredClone
 
 the chrome window can have more than one page. you can see other pages with `context.pages().find((p) => p.url().includes('localhost'))`. you can also open and close pages: `state.newPage = await context.newPage()`. store the page in state so that you can reuse it later
@@ -206,14 +205,14 @@ console.log(authLogs)
 
 ## loading file content into inputs
 
-you can use the `import` function to read files and fill inputs with their content:
+you can use the `require` function to read files and fill inputs with their content:
 
 ```js
-const fs = await import('node:fs'); const content = fs.readFileSync('/path/to/file.txt', 'utf-8'); await page.locator('textarea').fill(content)
+const fs = require('node:fs'); const content = fs.readFileSync('/path/to/file.txt', 'utf-8'); await page.locator('textarea').fill(content)
 ```
 
 for example, to fill a textarea with the content of a markdown file:
 
 ```js
-const fs = await import('node:fs'); const readme = fs.readFileSync('./README.md', 'utf-8'); await page.locator('#description').fill(readme); console.log('Filled textarea with README content')
+const fs = require('node:fs'); const readme = fs.readFileSync('./README.md', 'utf-8'); await page.locator('#description').fill(readme); console.log('Filled textarea with README content')
 ```
