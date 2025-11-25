@@ -151,6 +151,33 @@ Jetski exposes 17+ browser tools (`capture_browser_screenshot`, `browser_click_e
 
 The irony is that by trying to make browser control "simpler" with dedicated tools, these integrations make it slower, less capable, and waste context window that could be used for actual work.
 
+## Architecture
+
+```
++---------------------+     +-------------------+     +-----------------+
+|   BROWSER           |     |   LOCALHOST       |     |   MCP CLIENT    |
+|                     |     |                   |     |                 |
+|  +---------------+  |     | WebSocket Server  |     |  +-----------+  |
+|  |   Extension   |<--------->  :19988         |     |  | AI Agent  |  |
+|  |  (bg script)  |  | WS  |                   |     |  | (Claude)  |  |
+|  +-------+-------+  |     |  /extension       |     |  +-----------+  |
+|          |          |     |       ^           |     |        |        |
+|          | chrome   |     |       |           |     |        v        |
+|          | .debug   |     |       v           |     |  +-----------+  |
+|          v          |     |  /cdp/:id <--------------> |  execute  |  |
+|  +---------------+  |     |                   |  WS |  |   tool    |  |
+|  | Tab 1 (green) |  |     | Routes:           |     |  +-----------+  |
+|  +---------------+  |     |  - CDP commands   |     |        |        |
+|  +---------------+  |     |  - CDP events     |     |        v        |
+|  | Tab 2 (green) |  |     |  - attach/detach  |     |  +-----------+  |
+|  +---------------+  |     |    Target events  |     |  | Playwright|  |
+|  +---------------+  |     +-------------------+     |  |    API    |  |
+|  | Tab 3 (gray)  |  |                               |  +-----------+  |
+|  +---------------+  |     Tab 3 not controlled      +-----------------+
+|                     |     (user didn't click icon)
++---------------------+
+```
+
 ## Security
 
 Playwriter is designed with security in mind, ensuring that only you can control your browser.
