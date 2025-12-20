@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.23
+
+### Patch Changes
+
+- **Windows compatibility**: Use `os.tmpdir()` for log files instead of XDG paths, ensuring cross-platform support
+- **Removed `xdg-basedir` dependency**: Simplified path handling by using Node's built-in `os.tmpdir()`
+
 ## 0.0.22
 
 ### Patch Changes

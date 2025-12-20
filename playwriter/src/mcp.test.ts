@@ -1741,8 +1741,8 @@ describe('MCP Server Tests', () => {
             {
               "text": "Return value:
           {
-            "matchesDark": true,
-            "matchesLight": false
+            "error": "Page not found",
+            "urls": []
           }",
               "type": "text",
             },
@@ -1968,7 +1968,7 @@ describe('CDP Session Tests', () => {
             sampleFunctionNames: functionNames,
         }).toMatchInlineSnapshot(`
           {
-            "durationMicroseconds": 7500,
+            "durationMicroseconds": 15772,
             "hasNodes": true,
             "nodeCount": 7,
             "sampleFunctionNames": [

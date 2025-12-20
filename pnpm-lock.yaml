@@ -93,9 +93,6 @@ importers:
       ws:
         specifier: ^8.18.3
         version: 8.18.3(bufferutil@4.0.9)
-      xdg-basedir:
-        specifier: ^5.1.0
-        version: 5.1.0
       zod:
         specifier: ^3
         version: 3.25.76
@@ -2709,10 +2706,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-
-  xdg-basedir@5.1.0:
-    resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
-    engines: {node: '>=12'}
 
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
@@ -5495,8 +5488,6 @@ snapshots:
   ws@8.18.3(bufferutil@4.0.9):
     optionalDependencies:
       bufferutil: 4.0.9
-
-  xdg-basedir@5.1.0: {}
 
   xml-name-validator@5.0.0:
     optional: true
