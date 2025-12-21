@@ -7,4 +7,4 @@ esm
 coverage
 *.zip
 *.log
-tmp/
+tmp
