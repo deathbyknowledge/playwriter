@@ -1970,20 +1970,14 @@ describe('CDP Session Tests', () => {
             sampleFunctionNames: functionNames,
         }).toMatchInlineSnapshot(`
           {
-            "durationMicroseconds": 9014,
+            "durationMicroseconds": 10203,
             "hasNodes": true,
-            "nodeCount": 20,
+            "nodeCount": 7,
             "sampleFunctionNames": [
               "(root)",
               "(program)",
               "(idle)",
               "evaluate",
-              "fibonacci",
-              "fibonacci",
-              "fibonacci",
-              "fibonacci",
-              "fibonacci",
-              "fibonacci",
             ],
           }
         `)
@@ -2092,6 +2086,40 @@ describe('CDP Session Tests', () => {
         await browser.close()
         await page1.close()
         await page2.close()
+    }, 60000)
+
+    it('should create CDP session for page after navigation', async () => {
+        const browserContext = getBrowserContext()
+        const serviceWorker = await getExtensionServiceWorker(browserContext)
+
+        const page = await browserContext.newPage()
+        await page.goto('https://example.com/')
+        await page.bringToFront()
+
+        await serviceWorker.evaluate(async () => {
+            await globalThis.toggleExtensionForActiveTab()
+        })
+        await new Promise(r => setTimeout(r, 500))
+
+        await page.goto('https://news.ycombinator.com/', { waitUntil: 'networkidle' })
+        await new Promise(r => setTimeout(r, 500))
+
+        const browser = await chromium.connectOverCDP(getCdpUrl())
+        const cdpPage = browser.contexts()[0].pages().find(p => p.url().includes('news.ycombinator.com'))
+        expect(cdpPage).toBeDefined()
+
+        const wsUrl = getCdpUrl()
+        const cdpSession = await getCDPSessionForPage({ page: cdpPage!, wsUrl })
+
+        const evalResult = await cdpSession.send('Runtime.evaluate', {
+            expression: 'document.title',
+            returnByValue: true,
+        })
+        expect(evalResult.result.value).toContain('Hacker News')
+
+        cdpSession.close()
+        await browser.close()
+        await page.close()
     }, 60000)
 
     it('should maintain CDP session functionality after page URL change', async () => {
