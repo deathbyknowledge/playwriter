@@ -95,13 +95,16 @@ you have access to some functions in addition to playwright methods:
     - `page`: the page object to create the session for
     - Returns: `{ send(method, params?), on(event, callback), off(event, callback) }`
     - Example: `const cdp = await getCDPSession({ page }); const metrics = await cdp.send('Page.getLayoutMetrics');`
-    - Example listening for events:
+- `createDebugger({ cdp })`: creates a Debugger instance for setting breakpoints, stepping, and inspecting variables. Works with browser JS or Node.js (--inspect).
+    - `cdp`: a CDPSession from `getCDPSession`
+    - Methods: `enable()`, `setBreakpoint({ file, line })`, `deleteBreakpoint({ breakpointId })`, `listBreakpoints()`, `listScripts({ search? })`, `evaluate({ expression })`, `executeCode({ code })`, `inspectVariables({ scope? })`, `getLocation()`, `stepOver()`, `stepInto()`, `stepOut()`, `resume()`, `getConsoleOutput({ limit? })`, `isPaused()`
+    - Example:
       ```js
-      const cdp = await getCDPSession({ page });
-      await cdp.send('Debugger.enable');
-      const pausedEvent = await new Promise((resolve) => { cdp.on('Debugger.paused', resolve); });
-      console.log('Paused at:', pausedEvent.callFrames[0].location);
-      await cdp.send('Debugger.resume');
+      const cdp = await getCDPSession({ page }); const dbg = createDebugger({ cdp }); await dbg.enable();
+      console.log(dbg.listScripts({ search: 'app' }));
+      await dbg.setBreakpoint({ file: 'https://example.com/app.js', line: 42 });
+      // user triggers the code, then:
+      if (dbg.isPaused()) { console.log(await dbg.getLocation()); console.log(await dbg.inspectVariables()); await dbg.resume(); }
       ```
 
 example:

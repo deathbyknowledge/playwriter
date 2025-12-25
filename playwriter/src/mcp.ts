@@ -15,6 +15,7 @@ import { getCdpUrl, LOG_FILE_PATH, VERSION, sleep } from './utils.js'
 import { killPortProcess } from 'kill-port-process'
 import { waitForPageLoad, WaitForPageLoadOptions, WaitForPageLoadResult } from './wait-for-page-load.js'
 import { getCDPSessionForPage, CDPSession } from './cdp-session.js'
+import { Debugger } from './debugger.js'
 
 class CodeExecutionTimeoutError extends Error {
   constructor(timeout: number) {
@@ -72,6 +73,7 @@ interface VMContext {
   clearAllLogs: () => void
   waitForPageLoad: (options: WaitForPageLoadOptions) => Promise<WaitForPageLoadResult>
   getCDPSession: (options: { page: Page }) => Promise<CDPSession>
+  createDebugger: (options: { cdp: CDPSession }) => Debugger
   require: NodeRequire
   import: (specifier: string) => Promise<any>
 }
@@ -389,6 +391,38 @@ const promptContent =
   fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'prompt.md'), 'utf-8') +
   `\n\nfor debugging internal playwriter errors, check playwriter relay server logs at: ${LOG_FILE_PATH}`
 
+server.resource('debugger-api', 'playwriter://debugger-api', { mimeType: 'text/plain' }, async () => {
+  const packageJsonPath = require.resolve('playwriter/package.json')
+  const distDir = path.join(path.dirname(packageJsonPath), 'dist')
+
+  const debuggerTypes = fs.readFileSync(path.join(distDir, 'debugger.d.ts'), 'utf-8')
+  const debuggerExamples = fs.readFileSync(path.join(distDir, 'debugger-examples.ts'), 'utf-8')
+
+  return {
+    contents: [
+      {
+        uri: 'playwriter://debugger-api',
+        text: dedent`
+          # Debugger API Reference
+
+          ## Types
+
+          \`\`\`ts
+          ${debuggerTypes}
+          \`\`\`
+
+          ## Examples
+
+          \`\`\`ts
+          ${debuggerExamples}
+          \`\`\`
+        `,
+        mimeType: 'text/plain',
+      },
+    ],
+  }
+})
+
 server.tool(
   'execute',
   promptContent,
@@ -584,6 +618,10 @@ server.tool(
         return session
       }
 
+      const createDebugger = (options: { cdp: CDPSession }) => {
+        return new Debugger(options)
+      }
+
       let vmContextObj: VMContextWithGlobals = {
         page,
         context,
@@ -595,6 +633,7 @@ server.tool(
         clearAllLogs,
         waitForPageLoad,
         getCDPSession,
+        createDebugger,
         resetPlaywright: async () => {
           const { page: newPage, context: newContext } = await resetConnection()
 
@@ -609,6 +648,7 @@ server.tool(
             clearAllLogs,
             waitForPageLoad,
             getCDPSession,
+            createDebugger,
             resetPlaywright: vmContextObj.resetPlaywright,
             require,
             // TODO --experimental-vm-modules is needed to make import work in vm
