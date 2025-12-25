@@ -24,9 +24,7 @@ export interface EvaluateResult {
   value: unknown
 }
 
-export interface VariablesResult {
-  [scope: string]: Record<string, unknown>
-}
+
 
 export interface ScriptInfo {
   scriptId: string
@@ -45,7 +43,7 @@ export interface ScriptInfo {
  * await dbg.setBreakpoint({ file: 'https://example.com/app.js', line: 42 })
  * // trigger the code path, then:
  * const location = await dbg.getLocation()
- * const vars = await dbg.inspectVariables()
+ * const vars = await dbg.inspectLocalVariables()
  * await dbg.resume()
  * ```
  */
@@ -133,14 +131,9 @@ export class Debugger {
   async setBreakpoint({ file, line }: { file: string; line: number }): Promise<string> {
     await this.enable()
 
-    let fileUrl = file
-    if (!file.startsWith('file://') && !file.startsWith('http://') && !file.startsWith('https://')) {
-      fileUrl = `file://${file.startsWith('/') ? '' : '/'}${file}`
-    }
-
     const response = await this.cdp.send('Debugger.setBreakpointByUrl', {
       lineNumber: line - 1,
-      urlRegex: fileUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      urlRegex: file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
       columnNumber: 0,
     })
 
@@ -181,47 +174,28 @@ export class Debugger {
   }
 
   /**
-   * Inspects variables in the current scope.
-   * When paused at a breakpoint with scope='local', returns variables from the call frame.
-   * Otherwise returns global scope information.
+   * Inspects local variables in the current call frame.
+   * Must be paused at a breakpoint. String values over 1000 chars are truncated.
+   * Use evaluate() for full control over reading specific values.
    *
-   * @param options - Options
-   * @param options.scope - 'local' for call frame variables, 'global' for global scope
-   * @returns Variables grouped by scope type
+   * @returns Record of variable names to values
+   * @throws Error if not paused or no active call frames
    *
    * @example
    * ```ts
-   * // When paused at a breakpoint:
-   * const vars = await dbg.inspectVariables({ scope: 'local' })
-   * // { local: { myVar: 'hello', count: 42 }, closure: { captured: true } }
-   *
-   * // Global scope:
-   * const globals = await dbg.inspectVariables({ scope: 'global' })
-   * // { lexicalNames: [...], globalThis: { ... } }
+   * const vars = await dbg.inspectLocalVariables()
+   * // { myVar: 'hello', count: 42 }
    * ```
    */
-  async inspectVariables({ scope = 'local' }: { scope?: 'local' | 'global' } = {}): Promise<VariablesResult> {
+  async inspectLocalVariables(): Promise<Record<string, unknown>> {
     await this.enable()
 
-    if (scope === 'global' || !this.paused) {
-      const response = await this.cdp.send('Runtime.globalLexicalScopeNames', {})
-      const globalObjResponse = await this.cdp.send('Runtime.evaluate', {
-        expression: 'this',
-        returnByValue: true,
-      })
-
-      return {
-        lexicalNames: response.names as unknown as Record<string, unknown>,
-        globalThis: globalObjResponse.result.value as Record<string, unknown>,
-      }
-    }
-
-    if (this.currentCallFrames.length === 0) {
-      throw new Error('No active call frames')
+    if (!this.paused || this.currentCallFrames.length === 0) {
+      throw new Error('Debugger is not paused at a breakpoint')
     }
 
     const frame = this.currentCallFrames[0]
-    const result: VariablesResult = {}
+    const result: Record<string, unknown> = {}
 
     for (const scopeObj of frame.scopeChain) {
       if (scopeObj.type === 'global') {
@@ -239,17 +213,33 @@ export class Debugger {
         generatePreview: true,
       })
 
-      const variables: Record<string, unknown> = {}
       for (const prop of objProperties.result) {
         if (prop.value && prop.configurable) {
-          variables[prop.name] = this.formatPropertyValue(prop.value)
+          result[prop.name] = this.formatPropertyValue(prop.value)
         }
       }
-
-      result[scopeObj.type] = variables
     }
 
     return result
+  }
+
+  /**
+   * Returns global lexical scope variable names.
+   *
+   * @returns Array of global variable names
+   *
+   * @example
+   * ```ts
+   * const globals = await dbg.inspectGlobalVariables()
+   * // ['myGlobal', 'CONFIG']
+   * ```
+   */
+  async inspectGlobalVariables(): Promise<string[]> {
+    await this.enable()
+
+    const response = await this.cdp.send('Runtime.globalLexicalScopeNames', {})
+
+    return response.names
   }
 
   /**
@@ -459,12 +449,35 @@ export class Debugger {
    * @example
    * ```ts
    * if (dbg.isPaused()) {
-   *   const vars = await dbg.inspectVariables()
+   *   const vars = await dbg.inspectLocalVariables()
    * }
    * ```
    */
   isPaused(): boolean {
     return this.paused
+  }
+
+  /**
+   * Configures the debugger to pause on exceptions.
+   *
+   * @param options - Options
+   * @param options.state - When to pause: 'none' (never), 'uncaught' (only uncaught), or 'all' (all exceptions)
+   *
+   * @example
+   * ```ts
+   * // Pause only on uncaught exceptions
+   * await dbg.setPauseOnExceptions({ state: 'uncaught' })
+   *
+   * // Pause on all exceptions (caught and uncaught)
+   * await dbg.setPauseOnExceptions({ state: 'all' })
+   *
+   * // Disable pausing on exceptions
+   * await dbg.setPauseOnExceptions({ state: 'none' })
+   * ```
+   */
+  async setPauseOnExceptions({ state }: { state: 'none' | 'uncaught' | 'all' }): Promise<void> {
+    await this.enable()
+    await this.cdp.send('Debugger.setPauseOnExceptions', { state })
   }
 
   /**
@@ -495,6 +508,13 @@ export class Debugger {
     return filtered.slice(0, 20)
   }
 
+  private truncateValue(value: unknown): unknown {
+    if (typeof value === 'string' && value.length > 1000) {
+      return value.slice(0, 1000) + `... (${value.length} chars)`
+    }
+    return value
+  }
+
   private formatPropertyValue(value: Protocol.Runtime.RemoteObject): unknown {
     if (value.type === 'object' && value.subtype !== 'null') {
       return `[${value.subtype || value.type}]`
@@ -503,7 +523,7 @@ export class Debugger {
       return '[function]'
     }
     if (value.value !== undefined) {
-      return value.value
+      return this.truncateValue(value.value)
     }
     return `[${value.type}]`
   }

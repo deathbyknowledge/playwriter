@@ -26,7 +26,7 @@ async function inspectWhenPaused() {
     console.log('Paused at:', loc.url, 'line', loc.lineNumber)
     console.log('Source:', loc.sourceContext)
 
-    const vars = await dbg.inspectVariables({ scope: 'local' })
+    const vars = await dbg.inspectLocalVariables()
     console.log('Variables:', vars)
 
     const result = await dbg.evaluate({ expression: 'myVar.length' })

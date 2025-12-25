@@ -1834,8 +1834,8 @@ describe('CDP Session Tests', () => {
         expect(location.callstack[0].functionName).toBe('testFunction')
         expect(location.sourceContext).toContain('debugger')
 
-        const vars = await dbg.inspectVariables({ scope: 'local' })
-        expect(vars.local).toMatchInlineSnapshot(`
+        const vars = await dbg.inspectLocalVariables()
+        expect(vars).toMatchInlineSnapshot(`
           {
             "localVar": "hello",
             "numberVar": 42,
@@ -2077,9 +2077,9 @@ describe('CDP Session Tests', () => {
             sampleFunctionNames: functionNames,
         }).toMatchInlineSnapshot(`
           {
-            "durationMicroseconds": 11251,
+            "durationMicroseconds": 10698,
             "hasNodes": true,
-            "nodeCount": 18,
+            "nodeCount": 19,
             "sampleFunctionNames": [
               "(root)",
               "(program)",
@@ -2282,6 +2282,146 @@ describe('CDP Session Tests', () => {
             returnByValue: true,
         })
         expect(locationResult.result.value).toBe(newUrl)
+
+        cdpSession.close()
+        await browser.close()
+        await page.close()
+    }, 60000)
+
+    it('should pause on all exceptions with setPauseOnExceptions', async () => {
+        const browserContext = getBrowserContext()
+        const serviceWorker = await getExtensionServiceWorker(browserContext)
+
+        const page = await browserContext.newPage()
+        await page.goto('https://example.com/')
+        await page.bringToFront()
+
+        await serviceWorker.evaluate(async () => {
+            await globalThis.toggleExtensionForActiveTab()
+        })
+        await new Promise(r => setTimeout(r, 500))
+
+        const browser = await chromium.connectOverCDP(getCdpUrl())
+        const cdpPage = browser.contexts()[0].pages().find(p => p.url().includes('example.com'))
+        expect(cdpPage).toBeDefined()
+
+        const wsUrl = getCdpUrl()
+        const cdpSession = await getCDPSessionForPage({ page: cdpPage!, wsUrl })
+        const dbg = new Debugger({ cdp: cdpSession })
+
+        await dbg.enable()
+        await dbg.setPauseOnExceptions({ state: 'all' })
+
+        const pausedPromise = new Promise<void>((resolve) => {
+            cdpSession.on('Debugger.paused', () => resolve())
+        })
+
+        cdpPage!.evaluate(`
+            (function() {
+                try {
+                    throw new Error('Caught test error');
+                } catch (e) {
+                    // caught but should still pause with state 'all'
+                }
+            })()
+        `).catch(() => {})
+
+        await Promise.race([
+            pausedPromise,
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Debugger.paused timeout')), 5000))
+        ])
+
+        expect(dbg.isPaused()).toBe(true)
+
+        const location = await dbg.getLocation()
+        expect(location.sourceContext).toContain('throw')
+
+        await dbg.resume()
+
+        await dbg.setPauseOnExceptions({ state: 'none' })
+
+        cdpSession.close()
+        await browser.close()
+        await page.close()
+    }, 60000)
+
+    it('should inspect local and global variables with inline snapshots', async () => {
+        const browserContext = getBrowserContext()
+        const serviceWorker = await getExtensionServiceWorker(browserContext)
+
+        const page = await browserContext.newPage()
+        await page.setContent(`
+            <html>
+                <head>
+                    <script>
+                        const GLOBAL_CONFIG = 'production';
+                        function runTest() {
+                            const userName = 'Alice';
+                            const userAge = 25;
+                            const settings = { theme: 'dark', lang: 'en' };
+                            const scores = [10, 20, 30];
+                            debugger;
+                            return userName;
+                        }
+                    </script>
+                </head>
+                <body>
+                    <button onclick="runTest()">Run</button>
+                </body>
+            </html>
+        `)
+        await page.bringToFront()
+
+        await serviceWorker.evaluate(async () => {
+            await globalThis.toggleExtensionForActiveTab()
+        })
+        await new Promise(r => setTimeout(r, 500))
+
+        const browser = await chromium.connectOverCDP(getCdpUrl())
+        let cdpPage
+        for (const p of browser.contexts()[0].pages()) {
+            const html = await p.content()
+            if (html.includes('runTest')) {
+                cdpPage = p
+                break
+            }
+        }
+        expect(cdpPage).toBeDefined()
+
+        const wsUrl = getCdpUrl()
+        const cdpSession = await getCDPSessionForPage({ page: cdpPage!, wsUrl })
+        const dbg = new Debugger({ cdp: cdpSession })
+
+        await dbg.enable()
+
+        const globalVars = await dbg.inspectGlobalVariables()
+        expect(globalVars).toMatchInlineSnapshot(`
+          [
+            "GLOBAL_CONFIG",
+          ]
+        `)
+
+        const pausedPromise = new Promise<void>((resolve) => {
+            cdpSession.on('Debugger.paused', () => resolve())
+        })
+
+        cdpPage!.evaluate('runTest()')
+
+        await pausedPromise
+        expect(dbg.isPaused()).toBe(true)
+
+        const localVars = await dbg.inspectLocalVariables()
+        expect(localVars).toMatchInlineSnapshot(`
+          {
+            "GLOBAL_CONFIG": "production",
+            "scores": "[array]",
+            "settings": "[object]",
+            "userAge": 25,
+            "userName": "Alice",
+          }
+        `)
+
+        await dbg.resume()
 
         cdpSession.close()
         await browser.close()
