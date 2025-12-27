@@ -232,7 +232,7 @@ async function handleCommand(msg: ExtensionCommandMessage): Promise<any> {
       }
       try {
         await chrome.debugger.sendCommand(debuggee, 'Runtime.disable')
-        await sleep(200)
+        await sleep(400)
       } catch (e) {
         logger.debug('Error disabling Runtime (ignoring):', e)
       }
