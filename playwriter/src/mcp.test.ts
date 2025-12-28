@@ -1885,7 +1885,7 @@ describe('MCP Server Tests', () => {
         console.log('Stagehand initialized')
 
         const context = stagehand.context
-        console.log('Stagehand context:', context)
+        // console.log('Stagehand context:', context)
         expect(context).toBeDefined()
 
         const pages = context.pages()
@@ -1970,7 +1970,7 @@ describe('CDP Session Tests', () => {
 
     beforeAll(async () => {
         testCtx = await setupTestContext({ tempDirPrefix: 'pw-cdp-test-' })
-        
+
         const serviceWorker = await getExtensionServiceWorker(testCtx.browserContext)
         await serviceWorker.evaluate(async () => {
             await globalThis.disconnectEverything()
@@ -2327,10 +2327,10 @@ describe('CDP Session Tests', () => {
 
         const afterNavTargets = await cdpSession.send('Target.getTargets')
         const allPageTargets = afterNavTargets.targetInfos.filter(t => t.type === 'page')
-        
+
         const aboutBlankTargets = allPageTargets.filter(t => t.url === 'about:blank')
         expect(aboutBlankTargets).toHaveLength(0)
-        
+
         const exampleComTargets = allPageTargets.filter(t => t.url.includes('example.com'))
         expect(exampleComTargets).toHaveLength(0)
 
@@ -2371,10 +2371,10 @@ describe('CDP Session Tests', () => {
 
         const { targetInfos } = await cdpSession.send('Target.getTargets')
         const allPageTargets = targetInfos.filter(t => t.type === 'page')
-        
+
         const aboutBlankTargets = allPageTargets.filter(t => t.url === 'about:blank')
         expect(aboutBlankTargets).toHaveLength(0)
-        
+
         const pageTargets = allPageTargets
             .map(t => ({ type: t.type, url: t.url }))
             .sort((a, b) => a.url.localeCompare(b.url))
