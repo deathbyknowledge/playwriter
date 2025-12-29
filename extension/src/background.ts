@@ -986,8 +986,20 @@ logger.debug(`Using relay URL: ${RELAY_URL}`)
 chrome.tabs.onRemoved.addListener(onTabRemoved)
 chrome.tabs.onActivated.addListener(onTabActivated)
 chrome.action.onClicked.addListener(onActionClicked)
-chrome.tabs.onUpdated.addListener(() => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   void updateIcons()
+  if (changeInfo.groupId !== undefined && playwriterGroupId !== null) {
+    const { tabs } = store.getState()
+    if (changeInfo.groupId === playwriterGroupId) {
+      if (!tabs.has(tabId) && !isRestrictedUrl(tab.url)) {
+        logger.debug('Tab manually added to playwriter group:', tabId)
+        void connectTab(tabId)
+      }
+    } else if (tabs.has(tabId)) {
+      logger.debug('Tab manually removed from playwriter group:', tabId)
+      void disconnectTab(tabId)
+    }
+  }
 })
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
