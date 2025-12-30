@@ -1,7 +1,7 @@
 {
   "name": "website",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev --port 8044",
