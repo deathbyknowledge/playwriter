@@ -66,6 +66,34 @@ Search for specific elements:
 const snapshot = await accessibilitySnapshot({ page, search: /button|submit/i })
 ```
 
+## selector best practices
+
+**For unknown websites**: use `accessibilitySnapshot()` with `aria-ref` - it shows what's actually interactive.
+
+**For development** (when you have source code access), prefer stable selectors in this order:
+
+1. **Best**: `[data-testid="submit"]` - explicit test attributes, never change accidentally
+2. **Good**: `getByRole('button', { name: 'Save' })` - accessible, semantic
+3. **Good**: `getByText('Sign in')`, `getByLabel('Email')` - readable, user-facing
+4. **OK**: `input[name="email"]`, `button[type="submit"]` - semantic HTML
+5. **Avoid**: `.btn-primary`, `#submit` - classes/IDs change frequently
+6. **Last resort**: `div.container > form > button` - fragile, breaks easily
+
+Combine locators for precision:
+
+```js
+page.locator('tr').filter({ hasText: 'John' }).locator('button').click()
+page.locator('button').nth(2).click()
+```
+
+If a locator matches multiple elements, Playwright throws "strict mode violation". Use `.first()`, `.last()`, or `.nth(n)`:
+
+```js
+await page.locator('button').first().click()  // first match
+await page.locator('.item').last().click()    // last match
+await page.locator('li').nth(3).click()       // 4th item (0-indexed)
+```
+
 ## working with pages
 
 Find a specific page:
@@ -81,6 +109,36 @@ Create new page:
 ```js
 state.newPage = await context.newPage();
 await state.newPage.goto('https://example.com');
+```
+
+## common patterns
+
+**Popups** - capture before triggering:
+
+```js
+const [popup] = await Promise.all([page.waitForEvent('popup'), page.click('a[target=_blank]')]);
+await popup.waitForLoadState(); console.log('Popup URL:', popup.url());
+```
+
+**Downloads** - capture and save:
+
+```js
+const [download] = await Promise.all([page.waitForEvent('download'), page.click('button.download')]);
+await download.saveAs(`/tmp/${download.suggestedFilename()}`);
+```
+
+**iFrames** - use frameLocator:
+
+```js
+const frame = page.frameLocator('#my-iframe');
+await frame.locator('button').click();
+```
+
+**Dialogs** - handle alerts/confirms/prompts:
+
+```js
+page.on('dialog', async dialog => { console.log(dialog.message()); await dialog.accept(); });
+await page.click('button.trigger-alert');
 ```
 
 ## utility functions
@@ -159,7 +217,7 @@ await el.click();
 
 ## page.evaluate
 
-Use `console.log()` to output values to the tool result. For `page.evaluate()`, return values and log outside (console.log inside evaluate runs in browser, not visible):
+Code inside `page.evaluate()` runs in the browser - use plain JavaScript only, no TypeScript syntax. Return values and log outside (console.log inside evaluate runs in browser, not visible):
 
 ```js
 const title = await page.evaluate(() => document.title);
@@ -180,10 +238,46 @@ Fill inputs with file content:
 const fs = require('node:fs'); const content = fs.readFileSync('./README.md', 'utf-8'); await page.locator('textarea').fill(content);
 ```
 
+## network interception
+
+For scraping or reverse-engineering APIs, intercept network requests instead of scrolling DOM. Store in `state` to analyze across calls:
+
+```js
+state.requests = []; state.responses = [];
+page.on('request', req => { if (req.url().includes('/api/')) state.requests.push({ url: req.url(), method: req.method(), headers: req.headers() }); });
+page.on('response', async res => { if (res.url().includes('/api/')) { try { state.responses.push({ url: res.url(), status: res.status(), body: await res.json() }); } catch {} } });
+```
+
+Then trigger actions (scroll, click, navigate) and analyze captured data:
+
+```js
+console.log('Captured', state.responses.length, 'API calls');
+state.responses.forEach(r => console.log(r.status, r.url.slice(0, 80)));
+```
+
+Inspect a specific response to understand schema:
+
+```js
+const resp = state.responses.find(r => r.url.includes('users'));
+console.log(JSON.stringify(resp.body, null, 2).slice(0, 2000));
+```
+
+Replay API directly (useful for pagination):
+
+```js
+const { url, headers } = state.requests.find(r => r.url.includes('feed'));
+const data = await page.evaluate(async ({ url, headers }) => { const res = await fetch(url, { headers }); return res.json(); }, { url, headers });
+console.log(data);
+```
+
+Clean up listeners when done: `page.removeAllListeners('request'); page.removeAllListeners('response');`
+
 ## capabilities
 
 Examples of what playwriter can do:
 - Monitor console logs while user reproduces a bug
-- Monitor XHR requests while scrolling infinite scroll to extract data
+- Intercept network requests to reverse-engineer APIs and build SDKs
+- Scrape data by replaying paginated API calls instead of scrolling DOM
 - Get accessibility snapshot to find elements, then automate interactions
 - Debug issues by collecting logs and controlling the page simultaneously
+- Handle popups, downloads, iframes, and dialog boxes
