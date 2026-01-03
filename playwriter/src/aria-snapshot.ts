@@ -197,16 +197,19 @@ export async function getAriaSnapshot({ page }: { page: Page }): Promise<AriaSna
  * Labels are yellow badges positioned above each element showing the aria ref (e.g., "e1", "e2").
  * Use with screenshots so agents can see which elements are interactive.
  *
+ * Labels auto-hide after 5 seconds to prevent stale labels remaining on the page.
+ * Call this function again if the page HTML changes to get fresh labels.
+ *
  * By default, only shows labels for truly interactive roles (button, link, textbox, etc.)
  * to reduce visual clutter. Set `interactiveOnly: false` to show all elements with refs.
  *
  * @example
  * ```ts
  * const { snapshot, labelCount } = await showAriaRefLabels({ page })
- * const screenshot = await page.screenshot()
+ * await page.screenshot({ path: '/tmp/screenshot.png' })
  * // Agent sees [e5] label on "Submit" button
  * await page.locator('aria-ref=e5').click()
- * await hideAriaRefLabels({ page })
+ * // Labels auto-hide after 5 seconds, or call hideAriaRefLabels() manually
  * ```
  */
 export async function showAriaRefLabels({ page, interactiveOnly = true }: {
@@ -393,6 +396,12 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
       }
 
       doc.documentElement.appendChild(container)
+
+      // Auto-hide labels after 5 seconds to prevent stale labels
+      win.setTimeout(() => {
+        doc.getElementById(containerId)?.remove()
+      }, 5000)
+
       return count
     },
     {

@@ -95,29 +95,31 @@ server.close()
 
 ### Visual Aria Ref Labels
 
-Playwriter includes Vimium-style visual labels that overlay interactive elements, making it easy for AI agents to identify and click elements from screenshots.
+Playwriter includes Vimium-style visual labels that overlay interactive elements, making it easy for AI agents to identify and click elements from screenshots. These functions are available in the MCP context.
 
-```typescript
-import { showAriaRefLabels, hideAriaRefLabels } from 'playwriter'
-
+```javascript
 // Show labels on all visible interactive elements
 const { snapshot, labelCount } = await showAriaRefLabels({ page })
+console.log(`Showing ${labelCount} labels`)
 
-// Take a screenshot - agent sees labeled elements
-const screenshot = await page.screenshot()
+// Take a screenshot with labels visible
+await page.screenshot({ path: '/tmp/labeled-page.png' })
 
-// Agent can click using the aria-ref selector
+// Use the snapshot to find elements, then interact using aria-ref selector
 await page.locator('aria-ref=e5').click()
 
-// Remove labels when done
+// Labels auto-hide after 5 seconds, or remove manually:
 await hideAriaRefLabels({ page })
 ```
 
+**Important:** Labels auto-hide after 5 seconds to prevent stale labels. If the page HTML changes (navigation, dynamic content), call `showAriaRefLabels()` again to get fresh labels matching the current DOM.
+
 **Features:**
 - **Role filtering** - Only shows labels for interactive elements (buttons, links, inputs, etc.)
-- **Visibility detection** - Skips elements covered by modals or overlays using `elementsFromPoint()`
-- **Overlap prevention** - Greedy algorithm skips labels that would overlap with already-placed ones
-- **Color-coded by type** - Warm color scheme helps distinguish element types at a glance
+- **Visibility detection** - Skips elements covered by modals or overlays
+- **Overlap prevention** - Skips labels that would overlap with already-placed ones
+- **Color-coded by type** - Warm color scheme helps distinguish element types
+- **Auto-hide** - Labels disappear after 5 seconds to prevent stale overlays
 
 **Color legend:**
 

@@ -21,6 +21,7 @@ import { Editor } from './editor.js'
 import { getStylesForLocator, formatStylesAsText, type StylesResult } from './styles.js'
 import { getReactSource, type ReactSourceLocation } from './react-source.js'
 import { ScopedFS } from './scoped-fs.js'
+import { showAriaRefLabels, hideAriaRefLabels } from './aria-snapshot.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -85,6 +86,8 @@ interface VMContext {
   getStylesForLocator: (options: { locator: any }) => Promise<StylesResult>
   formatStylesAsText: (styles: StylesResult) => string
   getReactSource: (options: { locator: any }) => Promise<ReactSourceLocation | null>
+  showAriaRefLabels: (options: { page: Page; interactiveOnly?: boolean }) => Promise<{ snapshot: string; labelCount: number }>
+  hideAriaRefLabels: (options: { page: Page }) => Promise<void>
   require: NodeRequire
   import: (specifier: string) => Promise<any>
 }
@@ -877,6 +880,8 @@ server.tool(
         getStylesForLocator: getStylesForLocatorFn,
         formatStylesAsText,
         getReactSource: getReactSourceFn,
+        showAriaRefLabels,
+        hideAriaRefLabels,
         resetPlaywright: async () => {
           const { page: newPage, context: newContext } = await resetConnection()
 
@@ -896,6 +901,8 @@ server.tool(
             getStylesForLocator: getStylesForLocatorFn,
             formatStylesAsText,
             getReactSource: getReactSourceFn,
+            showAriaRefLabels,
+            hideAriaRefLabels,
             resetPlaywright: vmContextObj.resetPlaywright,
             require: sandboxedRequire,
             // TODO --experimental-vm-modules is needed to make import work in vm
