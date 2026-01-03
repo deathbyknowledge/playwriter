@@ -37,6 +37,37 @@ const INTERACTIVE_ROLES = new Set([
   'treeitem',
 ])
 
+// Color categories for different role types (light backgrounds with good contrast for black text)
+// Format: [gradient-top, gradient-bottom, border]
+const ROLE_COLORS: Record<string, [string, string, string]> = {
+  // Links - light blue
+  link: ['#B3E5FC', '#81D4FA', '#4FC3F7'],
+  // Buttons - light green
+  button: ['#C8E6C9', '#A5D6A7', '#81C784'],
+  // Text inputs - light orange
+  textbox: ['#FFE0B2', '#FFCC80', '#FFB74D'],
+  combobox: ['#FFE0B2', '#FFCC80', '#FFB74D'],
+  searchbox: ['#FFE0B2', '#FFCC80', '#FFB74D'],
+  spinbutton: ['#FFE0B2', '#FFCC80', '#FFB74D'],
+  // Checkboxes/Radios/Switches - light purple
+  checkbox: ['#E1BEE7', '#CE93D8', '#BA68C8'],
+  radio: ['#E1BEE7', '#CE93D8', '#BA68C8'],
+  switch: ['#E1BEE7', '#CE93D8', '#BA68C8'],
+  // Sliders - light teal
+  slider: ['#B2DFDB', '#80CBC4', '#4DB6AC'],
+  // Menu items - light pink
+  menuitem: ['#F8BBD9', '#F48FB1', '#F06292'],
+  menuitemcheckbox: ['#F8BBD9', '#F48FB1', '#F06292'],
+  menuitemradio: ['#F8BBD9', '#F48FB1', '#F06292'],
+  // Tabs/Options - light indigo
+  tab: ['#C5CAE9', '#9FA8DA', '#7986CB'],
+  option: ['#C5CAE9', '#9FA8DA', '#7986CB'],
+  treeitem: ['#C5CAE9', '#9FA8DA', '#7986CB'],
+}
+
+// Default yellow for unknown roles
+const DEFAULT_COLORS: [string, string, string] = ['#FFF785', '#FFC542', '#E3BE23']
+
 // Use String.raw for CSS syntax highlighting in editors
 const css = String.raw
 
@@ -45,8 +76,6 @@ const LABEL_STYLES = css`
     position: absolute;
     font: bold 11px Helvetica, Arial, sans-serif;
     padding: 1px 4px;
-    background: linear-gradient(to bottom, #FFF785 0%, #FFC542 100%);
-    border: 1px solid #E3BE23;
     border-radius: 3px;
     color: black;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -197,15 +226,28 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
       })
     : refHandles
 
+  // Build refs with role info for color coding
+  const refsWithRoles = filteredRefs.map(({ ref, handle }) => ({
+    ref,
+    element: handle,
+    role: refToElement.get(ref)?.role || 'generic',
+  }))
+
   // Single evaluate call: create container, styles, and all labels
   // ElementHandles get unwrapped to DOM elements in browser context
   // Using 'any' types here since this code runs in browser context
   const labelCount = await page.evaluate(
-    ({ refs, containerId, containerStyles, labelStyles }: {
-      refs: Array<{ ref: string; element: { getBoundingClientRect(): { width: number; height: number; left: number; top: number; right: number; bottom: number } } }>
+    ({ refs, containerId, containerStyles, labelStyles, roleColors, defaultColors }: {
+      refs: Array<{
+        ref: string
+        role: string
+        element: { getBoundingClientRect(): { width: number; height: number; left: number; top: number; right: number; bottom: number } }
+      }>
       containerId: string
       containerStyles: string
       labelStyles: string
+      roleColors: Record<string, [string, string, string]>
+      defaultColors: [string, string, string]
     }) => {
       const doc = (globalThis as any).document
       const win = globalThis as any
@@ -218,7 +260,7 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
       container.id = containerId
       container.style.cssText = containerStyles
 
-      // Inject Vimium-style CSS
+      // Inject base label CSS
       const style = doc.createElement('style')
       style.textContent = labelStyles
       container.appendChild(style)
@@ -241,7 +283,7 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
 
       // Create label for each interactive element
       let count = 0
-      for (const { ref, element } of refs) {
+      for (const { ref, role, element } of refs) {
         const rect = element.getBoundingClientRect()
 
         // Skip elements with no size (hidden)
@@ -266,10 +308,15 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
           continue
         }
 
+        // Get colors for this role
+        const [gradTop, gradBottom, border] = roleColors[role] || defaultColors
+
         // Place the label
         const label = doc.createElement('div')
         label.className = '__pw_label__'
         label.textContent = ref
+        label.style.background = `linear-gradient(to bottom, ${gradTop} 0%, ${gradBottom} 100%)`
+        label.style.border = `1px solid ${border}`
 
         // Position above element, accounting for scroll
         label.style.left = `${win.scrollX + labelLeft}px`
@@ -284,10 +331,12 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
       return count
     },
     {
-      refs: filteredRefs.map(({ ref, handle }) => ({ ref, element: handle })),
+      refs: refsWithRoles.map(({ ref, role, element }) => ({ ref, role, element })),
       containerId: LABELS_CONTAINER_ID,
       containerStyles: CONTAINER_STYLES,
       labelStyles: LABEL_STYLES,
+      roleColors: ROLE_COLORS,
+      defaultColors: DEFAULT_COLORS,
     }
   )
 
