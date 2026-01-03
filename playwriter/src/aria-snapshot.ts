@@ -202,7 +202,7 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
   // Using 'any' types here since this code runs in browser context
   const labelCount = await page.evaluate(
     ({ refs, containerId, containerStyles, labelStyles }: {
-      refs: Array<{ ref: string; element: { getBoundingClientRect(): { width: number; height: number; left: number; top: number } } }>
+      refs: Array<{ ref: string; element: { getBoundingClientRect(): { width: number; height: number; left: number; top: number; right: number; bottom: number } } }>
       containerId: string
       containerStyles: string
       labelStyles: string
@@ -223,6 +223,22 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
       style.textContent = labelStyles
       container.appendChild(style)
 
+      // Track placed label rectangles for overlap detection
+      // Each rect is { left, top, right, bottom } in viewport coordinates
+      const placedLabels: Array<{ left: number; top: number; right: number; bottom: number }> = []
+
+      // Estimate label dimensions (11px font + padding)
+      const LABEL_HEIGHT = 16
+      const LABEL_CHAR_WIDTH = 7 // approximate width per character
+
+      // Check if two rectangles overlap
+      const rectsOverlap = (
+        a: { left: number; top: number; right: number; bottom: number },
+        b: { left: number; top: number; right: number; bottom: number }
+      ) => {
+        return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+      }
+
       // Create label for each interactive element
       let count = 0
       for (const { ref, element } of refs) {
@@ -233,16 +249,34 @@ export async function showAriaRefLabels({ page, interactiveOnly = true }: {
           continue
         }
 
+        // Calculate label position and dimensions
+        const labelWidth = ref.length * LABEL_CHAR_WIDTH + 8 // +8 for padding
+        const labelLeft = rect.left
+        const labelTop = Math.max(0, rect.top - LABEL_HEIGHT)
+        const labelRect = {
+          left: labelLeft,
+          top: labelTop,
+          right: labelLeft + labelWidth,
+          bottom: labelTop + LABEL_HEIGHT,
+        }
+
+        // Skip if this label would overlap with any already-placed label
+        const overlaps = placedLabels.some((placed) => rectsOverlap(labelRect, placed))
+        if (overlaps) {
+          continue
+        }
+
+        // Place the label
         const label = doc.createElement('div')
         label.className = '__pw_label__'
         label.textContent = ref
 
         // Position above element, accounting for scroll
-        // Use scrollX/scrollY so labels scroll with the page
-        label.style.left = `${win.scrollX + rect.left}px`
-        label.style.top = `${win.scrollY + Math.max(0, rect.top - 16)}px`
+        label.style.left = `${win.scrollX + labelLeft}px`
+        label.style.top = `${win.scrollY + labelTop}px`
 
         container.appendChild(label)
+        placedLabels.push(labelRect)
         count++
       }
 

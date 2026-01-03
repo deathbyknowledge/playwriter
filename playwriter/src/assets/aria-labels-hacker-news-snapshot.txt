@@ -56,11 +56,11 @@
                     - link "indieweb.org" [ref=e42] [cursor=pointer]:
                       - /url: from?site=indieweb.org
                     - text: )
-            - row "771 points by 47thpresident 18 hours ago | hide | 182 comments" [ref=e43]:
+            - row "780 points by 47thpresident 18 hours ago | hide | 182 comments" [ref=e43]:
               - cell [ref=e44]
-              - cell "771 points by 47thpresident 18 hours ago | hide | 182 comments" [ref=e45]:
+              - cell "780 points by 47thpresident 18 hours ago | hide | 182 comments" [ref=e45]:
                 - generic [ref=e46]:
-                  - text: 771 points by
+                  - text: 780 points by
                   - link "47thpresident" [ref=e47] [cursor=pointer]:
                     - /url: user?id=47thpresident
                   - generic "2026-01-02T19:48:25 1767383305" [ref=e48]:
@@ -73,69 +73,69 @@
                   - link "182 comments" [ref=e51] [cursor=pointer]:
                     - /url: item?id=46468600
             - row [ref=e52]
-            - row "2. upvote Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger? (madebywindmill.com)" [ref=e53]:
+            - row "2. upvote Trump says Venezuela’s Maduro captured after strikes (reuters.com)" [ref=e53]:
               - cell "2." [ref=e54]
               - cell "upvote" [ref=e55]:
                 - link "upvote" [ref=e57] [cursor=pointer]:
-                  - /url: vote?id=46469577&how=up&goto=news
+                  - /url: vote?id=46473348&how=up&goto=news
                   - generic "upvote" [ref=e58]
-              - cell "Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger? (madebywindmill.com)" [ref=e59]:
+              - cell "Trump says Venezuela’s Maduro captured after strikes (reuters.com)" [ref=e59]:
                 - generic [ref=e60]:
-                  - link "Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger?" [ref=e61] [cursor=pointer]:
-                    - /url: https://www.madebywindmill.com/tempi/blog/hbfs-bpm/
+                  - link "Trump says Venezuela’s Maduro captured after strikes" [ref=e61] [cursor=pointer]:
+                    - /url: https://www.reuters.com/world/americas/loud-noises-heard-venezuela-capital-southern-area-without-electricity-2026-01-03/
                   - generic [ref=e62]:
                     - text: (
-                    - link "madebywindmill.com" [ref=e63] [cursor=pointer]:
-                      - /url: from?site=madebywindmill.com
+                    - link "reuters.com" [ref=e63] [cursor=pointer]:
+                      - /url: from?site=reuters.com
                     - text: )
-            - row "573 points by simonw 16 hours ago | hide | 96 comments" [ref=e64]:
+            - row "547 points by jumpocelot 7 hours ago | hide | 1254 comments" [ref=e64]:
               - cell [ref=e65]
-              - cell "573 points by simonw 16 hours ago | hide | 96 comments" [ref=e66]:
+              - cell "547 points by jumpocelot 7 hours ago | hide | 1254 comments" [ref=e66]:
                 - generic [ref=e67]:
-                  - text: 573 points by
-                  - link "simonw" [ref=e68] [cursor=pointer]:
-                    - /url: user?id=simonw
-                  - generic "2026-01-02T21:27:44 1767389264" [ref=e69]:
-                    - link "16 hours ago" [ref=e70] [cursor=pointer]:
-                      - /url: item?id=46469577
+                  - text: 547 points by
+                  - link "jumpocelot" [ref=e68] [cursor=pointer]:
+                    - /url: user?id=jumpocelot
+                  - generic "2026-01-03T06:35:21 1767422121" [ref=e69]:
+                    - link "7 hours ago" [ref=e70] [cursor=pointer]:
+                      - /url: item?id=46473348
                   - text: "|"
                   - link "hide" [ref=e71] [cursor=pointer]:
-                    - /url: hide?id=46469577&goto=news
+                    - /url: hide?id=46473348&goto=news
                   - text: "|"
-                  - link "96 comments" [ref=e72] [cursor=pointer]:
-                    - /url: item?id=46469577
+                  - link "1254 comments" [ref=e72] [cursor=pointer]:
+                    - /url: item?id=46473348
             - row [ref=e73]
-            - row "3. upvote Trump says Venezuela’s Maduro captured after strikes (reuters.com)" [ref=e74]:
+            - row "3. upvote Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger? (madebywindmill.com)" [ref=e74]:
               - cell "3." [ref=e75]
               - cell "upvote" [ref=e76]:
                 - link "upvote" [ref=e78] [cursor=pointer]:
-                  - /url: vote?id=46473348&how=up&goto=news
+                  - /url: vote?id=46469577&how=up&goto=news
                   - generic "upvote" [ref=e79]
-              - cell "Trump says Venezuela’s Maduro captured after strikes (reuters.com)" [ref=e80]:
+              - cell "Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger? (madebywindmill.com)" [ref=e80]:
                 - generic [ref=e81]:
-                  - link "Trump says Venezuela’s Maduro captured after strikes" [ref=e82] [cursor=pointer]:
-                    - /url: https://www.reuters.com/world/americas/loud-noises-heard-venezuela-capital-southern-area-without-electricity-2026-01-03/
+                  - link "Daft Punk Easter Egg in the BPM Tempo of Harder, Better, Faster, Stronger?" [ref=e82] [cursor=pointer]:
+                    - /url: https://www.madebywindmill.com/tempi/blog/hbfs-bpm/
                   - generic [ref=e83]:
                     - text: (
-                    - link "reuters.com" [ref=e84] [cursor=pointer]:
-                      - /url: from?site=reuters.com
+                    - link "madebywindmill.com" [ref=e84] [cursor=pointer]:
+                      - /url: from?site=madebywindmill.com
                     - text: )
-            - row "527 points by jumpocelot 7 hours ago | hide | 1210 comments" [ref=e85]:
+            - row "577 points by simonw 16 hours ago | hide | 96 comments" [ref=e85]:
               - cell [ref=e86]
-              - cell "527 points by jumpocelot 7 hours ago | hide | 1210 comments" [ref=e87]:
+              - cell "577 points by simonw 16 hours ago | hide | 96 comments" [ref=e87]:
                 - generic [ref=e88]:
-                  - text: 527 points by
-                  - link "jumpocelot" [ref=e89] [cursor=pointer]:
-                    - /url: user?id=jumpocelot
-                  - generic "2026-01-03T06:35:21 1767422121" [ref=e90]:
-                    - link "7 hours ago" [ref=e91] [cursor=pointer]:
-                      - /url: item?id=46473348
+                  - text: 577 points by
+                  - link "simonw" [ref=e89] [cursor=pointer]:
+                    - /url: user?id=simonw
+                  - generic "2026-01-02T21:27:44 1767389264" [ref=e90]:
+                    - link "16 hours ago" [ref=e91] [cursor=pointer]:
+                      - /url: item?id=46469577
                   - text: "|"
                   - link "hide" [ref=e92] [cursor=pointer]:
-                    - /url: hide?id=46473348&goto=news
+                    - /url: hide?id=46469577&goto=news
                   - text: "|"
-                  - link "1210 comments" [ref=e93] [cursor=pointer]:
-                    - /url: item?id=46473348
+                  - link "96 comments" [ref=e93] [cursor=pointer]:
+                    - /url: item?id=46469577
             - row [ref=e94]
             - 'row "4. upvote Of Boot Vectors and Double Glitches: Bypassing RP2350''s Secure Boot (ccc.de)" [ref=e95]':
               - cell "4." [ref=e96]
@@ -152,15 +152,15 @@
                     - link "ccc.de" [ref=e105] [cursor=pointer]:
                       - /url: from?site=ccc.de
                     - text: )
-            - row "96 points by aberoham 10 hours ago | hide | 9 comments" [ref=e106]:
+            - row "98 points by aberoham 11 hours ago | hide | 9 comments" [ref=e106]:
               - cell [ref=e107]
-              - cell "96 points by aberoham 10 hours ago | hide | 9 comments" [ref=e108]:
+              - cell "98 points by aberoham 11 hours ago | hide | 9 comments" [ref=e108]:
                 - generic [ref=e109]:
-                  - text: 96 points by
+                  - text: 98 points by
                   - link "aberoham" [ref=e110] [cursor=pointer]:
                     - /url: user?id=aberoham
                   - generic "2025-12-27T16:49:39 1766854179" [ref=e111]:
-                    - link "10 hours ago" [ref=e112] [cursor=pointer]:
+                    - link "11 hours ago" [ref=e112] [cursor=pointer]:
                       - /url: item?id=46403062
                   - text: "|"
                   - link "hide" [ref=e113] [cursor=pointer]:
@@ -184,11 +184,11 @@
                     - link "theregister.com" [ref=e126] [cursor=pointer]:
                       - /url: from?site=theregister.com
                     - text: )
-            - row "420 points by Brajeshwar 23 hours ago | hide | 839 comments" [ref=e127]:
+            - row "424 points by Brajeshwar 23 hours ago | hide | 846 comments" [ref=e127]:
               - cell [ref=e128]
-              - cell "420 points by Brajeshwar 23 hours ago | hide | 839 comments" [ref=e129]:
+              - cell "424 points by Brajeshwar 23 hours ago | hide | 846 comments" [ref=e129]:
                 - generic [ref=e130]:
-                  - text: 420 points by
+                  - text: 424 points by
                   - link "Brajeshwar" [ref=e131] [cursor=pointer]:
                     - /url: user?id=Brajeshwar
                   - generic "2026-01-02T14:55:09 1767365709" [ref=e132]:
@@ -198,95 +198,95 @@
                   - link "hide" [ref=e134] [cursor=pointer]:
                     - /url: hide?id=46465327&goto=news
                   - text: "|"
-                  - link "839 comments" [ref=e135] [cursor=pointer]:
+                  - link "846 comments" [ref=e135] [cursor=pointer]:
                     - /url: item?id=46465327
             - row [ref=e136]
-            - row "6. upvote A Beginner's Two-Component Crystal-Style Wi-Fi Detector (siliconjunction.wordpress.com)" [ref=e137]:
+            - row "6. ParadeDB (YC S23) Is Hiring Database Engineers (paradedb.notion.site)" [ref=e137]:
               - cell "6." [ref=e138]
-              - cell "upvote" [ref=e139]:
-                - link "upvote" [ref=e141] [cursor=pointer]:
-                  - /url: vote?id=46443730&how=up&goto=news
-                  - generic "upvote" [ref=e142]
-              - cell "A Beginner's Two-Component Crystal-Style Wi-Fi Detector (siliconjunction.wordpress.com)" [ref=e143]:
-                - generic [ref=e144]:
-                  - link "A Beginner's Two-Component Crystal-Style Wi-Fi Detector" [ref=e145] [cursor=pointer]:
-                    - /url: https://siliconjunction.wordpress.com/2025/12/12/a-beginners-two-component-crystal-style-wi-fi-detector/
-                  - generic [ref=e146]:
-                    - text: (
-                    - link "siliconjunction.wordpress.com" [ref=e147] [cursor=pointer]:
-                      - /url: from?site=siliconjunction.wordpress.com
-                    - text: )
-            - row "63 points by jensgk 9 hours ago | hide | 22 comments" [ref=e148]:
-              - cell [ref=e149]
-              - cell "63 points by jensgk 9 hours ago | hide | 22 comments" [ref=e150]:
-                - generic [ref=e151]:
-                  - text: 63 points by
-                  - link "jensgk" [ref=e152] [cursor=pointer]:
-                    - /url: user?id=jensgk
-                  - generic "2025-12-31T13:00:42 1767186042" [ref=e153]:
-                    - link "9 hours ago" [ref=e154] [cursor=pointer]:
-                      - /url: item?id=46443730
-                  - text: "|"
-                  - link "hide" [ref=e155] [cursor=pointer]:
-                    - /url: hide?id=46443730&goto=news
-                  - text: "|"
-                  - link "22 comments" [ref=e156] [cursor=pointer]:
-                    - /url: item?id=46443730
-            - row [ref=e157]
-            - row "7. ParadeDB (YC S23) Is Hiring Database Engineers (paradedb.notion.site)" [ref=e158]:
-              - cell "7." [ref=e159]
-              - cell [ref=e160]:
-                - img [ref=e161]
-              - cell "ParadeDB (YC S23) Is Hiring Database Engineers (paradedb.notion.site)" [ref=e162]:
-                - generic [ref=e163]:
-                  - link "ParadeDB (YC S23) Is Hiring Database Engineers" [ref=e164] [cursor=pointer]:
+              - cell [ref=e139]:
+                - img [ref=e140]
+              - cell "ParadeDB (YC S23) Is Hiring Database Engineers (paradedb.notion.site)" [ref=e141]:
+                - generic [ref=e142]:
+                  - link "ParadeDB (YC S23) Is Hiring Database Engineers" [ref=e143] [cursor=pointer]:
                     - /url: https://paradedb.notion.site/?p=172ea4ce9deb80898ef5d5097bd65544&pm=s
-                  - generic [ref=e165]:
+                  - generic [ref=e144]:
                     - text: (
-                    - link "paradedb.notion.site" [ref=e166] [cursor=pointer]:
+                    - link "paradedb.notion.site" [ref=e145] [cursor=pointer]:
                       - /url: from?site=paradedb.notion.site
                     - text: )
-            - row "24 minutes ago | hide" [ref=e167]:
-              - cell [ref=e168]
-              - cell "24 minutes ago | hide" [ref=e169]:
-                - generic "2026-01-03T13:53:34 1767448414" [ref=e170]:
-                  - link "24 minutes ago" [ref=e171] [cursor=pointer]:
+            - row "32 minutes ago | hide" [ref=e146]:
+              - cell [ref=e147]
+              - cell "32 minutes ago | hide" [ref=e148]:
+                - generic "2026-01-03T13:53:34 1767448414" [ref=e149]:
+                  - link "32 minutes ago" [ref=e150] [cursor=pointer]:
                     - /url: item?id=46476636
                 - text: "|"
-                - link "hide" [ref=e172] [cursor=pointer]:
+                - link "hide" [ref=e151] [cursor=pointer]:
                   - /url: hide?id=46476636&goto=news
+            - row [ref=e152]
+            - row "7. upvote A Beginner's Two-Component Crystal-Style Wi-Fi Detector (siliconjunction.wordpress.com)" [ref=e153]:
+              - cell "7." [ref=e154]
+              - cell "upvote" [ref=e155]:
+                - link "upvote" [ref=e157] [cursor=pointer]:
+                  - /url: vote?id=46443730&how=up&goto=news
+                  - generic "upvote" [ref=e158]
+              - cell "A Beginner's Two-Component Crystal-Style Wi-Fi Detector (siliconjunction.wordpress.com)" [ref=e159]:
+                - generic [ref=e160]:
+                  - link "A Beginner's Two-Component Crystal-Style Wi-Fi Detector" [ref=e161] [cursor=pointer]:
+                    - /url: https://siliconjunction.wordpress.com/2025/12/12/a-beginners-two-component-crystal-style-wi-fi-detector/
+                  - generic [ref=e162]:
+                    - text: (
+                    - link "siliconjunction.wordpress.com" [ref=e163] [cursor=pointer]:
+                      - /url: from?site=siliconjunction.wordpress.com
+                    - text: )
+            - row "65 points by jensgk 9 hours ago | hide | 23 comments" [ref=e164]:
+              - cell [ref=e165]
+              - cell "65 points by jensgk 9 hours ago | hide | 23 comments" [ref=e166]:
+                - generic [ref=e167]:
+                  - text: 65 points by
+                  - link "jensgk" [ref=e168] [cursor=pointer]:
+                    - /url: user?id=jensgk
+                  - generic "2025-12-31T13:00:42 1767186042" [ref=e169]:
+                    - link "9 hours ago" [ref=e170] [cursor=pointer]:
+                      - /url: item?id=46443730
+                  - text: "|"
+                  - link "hide" [ref=e171] [cursor=pointer]:
+                    - /url: hide?id=46443730&goto=news
+                  - text: "|"
+                  - link "23 comments" [ref=e172] [cursor=pointer]:
+                    - /url: item?id=46443730
             - row [ref=e173]
-            - row "8. upvote Tally – A tool to help agents classify your bank transactions (tallyai.money)" [ref=e174]:
+            - row "8. upvote X-Clacks-Overhead (hleb.dev)" [ref=e174]:
               - cell "8." [ref=e175]
               - cell "upvote" [ref=e176]:
                 - link "upvote" [ref=e178] [cursor=pointer]:
-                  - /url: vote?id=46475218&how=up&goto=news
+                  - /url: vote?id=46475437&how=up&goto=news
                   - generic "upvote" [ref=e179]
-              - cell "Tally – A tool to help agents classify your bank transactions (tallyai.money)" [ref=e180]:
+              - cell "X-Clacks-Overhead (hleb.dev)" [ref=e180]:
                 - generic [ref=e181]:
-                  - link "Tally – A tool to help agents classify your bank transactions" [ref=e182] [cursor=pointer]:
-                    - /url: https://tallyai.money/
+                  - link "X-Clacks-Overhead" [ref=e182] [cursor=pointer]:
+                    - /url: https://hleb.dev/post/x-clacks-overhead/
                   - generic [ref=e183]:
                     - text: (
-                    - link "tallyai.money" [ref=e184] [cursor=pointer]:
-                      - /url: from?site=tallyai.money
+                    - link "hleb.dev" [ref=e184] [cursor=pointer]:
+                      - /url: from?site=hleb.dev
                     - text: )
-            - row "70 points by ahmedatia 2 hours ago | hide | 57 comments" [ref=e185]:
+            - row "10 points by hleb_dev 2 hours ago | hide | 3 comments" [ref=e185]:
               - cell [ref=e186]
-              - cell "70 points by ahmedatia 2 hours ago | hide | 57 comments" [ref=e187]:
+              - cell "10 points by hleb_dev 2 hours ago | hide | 3 comments" [ref=e187]:
                 - generic [ref=e188]:
-                  - text: 70 points by
-                  - link "ahmedatia" [ref=e189] [cursor=pointer]:
-                    - /url: user?id=ahmedatia
-                  - generic "2026-01-03T11:02:33 1767438153" [ref=e190]:
+                  - text: 10 points by
+                  - link "hleb_dev" [ref=e189] [cursor=pointer]:
+                    - /url: user?id=hleb_dev
+                  - generic "2026-01-03T11:37:07 1767440227" [ref=e190]:
                     - link "2 hours ago" [ref=e191] [cursor=pointer]:
-                      - /url: item?id=46475218
+                      - /url: item?id=46475437
                   - text: "|"
                   - link "hide" [ref=e192] [cursor=pointer]:
-                    - /url: hide?id=46475218&goto=news
+                    - /url: hide?id=46475437&goto=news
                   - text: "|"
-                  - link "57 comments" [ref=e193] [cursor=pointer]:
-                    - /url: item?id=46475218
+                  - link "3 comments" [ref=e193] [cursor=pointer]:
+                    - /url: item?id=46475437
             - row [ref=e194]
             - row "9. upvote 2026 will be my year of the Linux desktop (xeiaso.net)" [ref=e195]:
               - cell "9." [ref=e196]
@@ -303,11 +303,11 @@
                     - link "xeiaso.net" [ref=e205] [cursor=pointer]:
                       - /url: from?site=xeiaso.net
                     - text: )
-            - row "611 points by todsacerdoti 14 hours ago | hide | 450 comments" [ref=e206]:
+            - row "612 points by todsacerdoti 14 hours ago | hide | 452 comments" [ref=e206]:
               - cell [ref=e207]
-              - cell "611 points by todsacerdoti 14 hours ago | hide | 450 comments" [ref=e208]:
+              - cell "612 points by todsacerdoti 14 hours ago | hide | 452 comments" [ref=e208]:
                 - generic [ref=e209]:
-                  - text: 611 points by
+                  - text: 612 points by
                   - link "todsacerdoti" [ref=e210] [cursor=pointer]:
                     - /url: user?id=todsacerdoti
                   - generic "2026-01-03T00:15:47 1767399347" [ref=e211]:
@@ -317,7 +317,7 @@
                   - link "hide" [ref=e213] [cursor=pointer]:
                     - /url: hide?id=46471199&goto=news
                   - text: "|"
-                  - link "450 comments" [ref=e214] [cursor=pointer]:
+                  - link "452 comments" [ref=e214] [cursor=pointer]:
                     - /url: item?id=46471199
             - row [ref=e215]
             - row "10. upvote Clicks Communicator (clicksphone.com)" [ref=e216]:
@@ -335,15 +335,15 @@
                     - link "clicksphone.com" [ref=e226] [cursor=pointer]:
                       - /url: from?site=clicksphone.com
                     - text: )
-            - row "357 points by microflash 20 hours ago | hide | 216 comments" [ref=e227]:
+            - row "358 points by microflash 21 hours ago | hide | 216 comments" [ref=e227]:
               - cell [ref=e228]
-              - cell "357 points by microflash 20 hours ago | hide | 216 comments" [ref=e229]:
+              - cell "358 points by microflash 21 hours ago | hide | 216 comments" [ref=e229]:
                 - generic [ref=e230]:
-                  - text: 357 points by
+                  - text: 358 points by
                   - link "microflash" [ref=e231] [cursor=pointer]:
                     - /url: user?id=microflash
                   - generic "2026-01-02T17:22:04 1767374524" [ref=e232]:
-                    - link "20 hours ago" [ref=e233] [cursor=pointer]:
+                    - link "21 hours ago" [ref=e233] [cursor=pointer]:
                       - /url: item?id=46467057
                   - text: "|"
                   - link "hide" [ref=e234] [cursor=pointer]:
@@ -352,159 +352,159 @@
                   - link "216 comments" [ref=e235] [cursor=pointer]:
                     - /url: item?id=46467057
             - row [ref=e236]
-            - row "11. upvote X-Clacks-Overhead (hleb.dev)" [ref=e237]:
+            - row "11. upvote Tally – A tool to help agents classify your bank transactions (tallyai.money)" [ref=e237]:
               - cell "11." [ref=e238]
               - cell "upvote" [ref=e239]:
                 - link "upvote" [ref=e241] [cursor=pointer]:
-                  - /url: vote?id=46475437&how=up&goto=news
+                  - /url: vote?id=46475218&how=up&goto=news
                   - generic "upvote" [ref=e242]
-              - cell "X-Clacks-Overhead (hleb.dev)" [ref=e243]:
+              - cell "Tally – A tool to help agents classify your bank transactions (tallyai.money)" [ref=e243]:
                 - generic [ref=e244]:
-                  - link "X-Clacks-Overhead" [ref=e245] [cursor=pointer]:
-                    - /url: https://hleb.dev/post/x-clacks-overhead/
+                  - link "Tally – A tool to help agents classify your bank transactions" [ref=e245] [cursor=pointer]:
+                    - /url: https://tallyai.money/
                   - generic [ref=e246]:
                     - text: (
-                    - link "hleb.dev" [ref=e247] [cursor=pointer]:
-                      - /url: from?site=hleb.dev
+                    - link "tallyai.money" [ref=e247] [cursor=pointer]:
+                      - /url: from?site=tallyai.money
                     - text: )
-            - row "7 points by hleb_dev 2 hours ago | hide | 2 comments" [ref=e248]:
+            - row "71 points by ahmedatia 2 hours ago | hide | 59 comments" [ref=e248]:
               - cell [ref=e249]
-              - cell "7 points by hleb_dev 2 hours ago | hide | 2 comments" [ref=e250]:
+              - cell "71 points by ahmedatia 2 hours ago | hide | 59 comments" [ref=e250]:
                 - generic [ref=e251]:
-                  - text: 7 points by
-                  - link "hleb_dev" [ref=e252] [cursor=pointer]:
-                    - /url: user?id=hleb_dev
-                  - generic "2026-01-03T11:37:07 1767440227" [ref=e253]:
+                  - text: 71 points by
+                  - link "ahmedatia" [ref=e252] [cursor=pointer]:
+                    - /url: user?id=ahmedatia
+                  - generic "2026-01-03T11:02:33 1767438153" [ref=e253]:
                     - link "2 hours ago" [ref=e254] [cursor=pointer]:
-                      - /url: item?id=46475437
+                      - /url: item?id=46475218
                   - text: "|"
                   - link "hide" [ref=e255] [cursor=pointer]:
-                    - /url: hide?id=46475437&goto=news
+                    - /url: hide?id=46475218&goto=news
                   - text: "|"
-                  - link "2 comments" [ref=e256] [cursor=pointer]:
-                    - /url: item?id=46475437
+                  - link "59 comments" [ref=e256] [cursor=pointer]:
+                    - /url: item?id=46475218
             - row [ref=e257]
-            - 'row "12. upvote IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf] (github.com/iquestlab)" [ref=e258]':
+            - 'row "12. upvote Ask HN: Who is hiring? (January 2026)" [ref=e258]':
               - cell "12." [ref=e259]
               - cell "upvote" [ref=e260]:
                 - link "upvote" [ref=e262] [cursor=pointer]:
-                  - /url: vote?id=46472667&how=up&goto=news
-                  - generic "upvote" [ref=e263]
-              - 'cell "IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf] (github.com/iquestlab)" [ref=e264]':
-                - generic [ref=e265]:
-                  - 'link "IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf]" [ref=e266] [cursor=pointer]':
-                    - /url: https://github.com/IQuestLab/IQuest-Coder-V1/blob/main/papers/IQuest_Coder_Technical_Report.pdf
-                  - generic [ref=e267]:
-                    - text: (
-                    - link "github.com/iquestlab" [ref=e268] [cursor=pointer]:
-                      - /url: from?site=github.com/iquestlab
-                    - text: )
-            - row "111 points by shenli3514 10 hours ago | hide | 33 comments" [ref=e269]:
-              - cell [ref=e270]
-              - cell "111 points by shenli3514 10 hours ago | hide | 33 comments" [ref=e271]:
-                - generic [ref=e272]:
-                  - text: 111 points by
-                  - link "shenli3514" [ref=e273] [cursor=pointer]:
-                    - /url: user?id=shenli3514
-                  - generic "2026-01-03T04:01:03 1767412863" [ref=e274]:
-                    - link "10 hours ago" [ref=e275] [cursor=pointer]:
-                      - /url: item?id=46472667
-                  - text: "|"
-                  - link "hide" [ref=e276] [cursor=pointer]:
-                    - /url: hide?id=46472667&goto=news
-                  - text: "|"
-                  - link "33 comments" [ref=e277] [cursor=pointer]:
-                    - /url: item?id=46472667
-            - row [ref=e278]
-            - 'row "13. upvote Ask HN: Who is hiring? (January 2026)" [ref=e279]':
-              - cell "13." [ref=e280]
-              - cell "upvote" [ref=e281]:
-                - link "upvote" [ref=e283] [cursor=pointer]:
                   - /url: vote?id=46466074&how=up&goto=news
-                  - generic "upvote" [ref=e284]
-              - 'cell "Ask HN: Who is hiring? (January 2026)" [ref=e285]':
-                - 'link "Ask HN: Who is hiring? (January 2026)" [ref=e287] [cursor=pointer]':
+                  - generic "upvote" [ref=e263]
+              - 'cell "Ask HN: Who is hiring? (January 2026)" [ref=e264]':
+                - 'link "Ask HN: Who is hiring? (January 2026)" [ref=e266] [cursor=pointer]':
                   - /url: item?id=46466074
-            - row "306 points by whoishiring 22 hours ago | hide | 186 comments" [ref=e288]:
-              - cell [ref=e289]
-              - cell "306 points by whoishiring 22 hours ago | hide | 186 comments" [ref=e290]:
-                - generic [ref=e291]:
+            - row "306 points by whoishiring 22 hours ago | hide | 188 comments" [ref=e267]:
+              - cell [ref=e268]
+              - cell "306 points by whoishiring 22 hours ago | hide | 188 comments" [ref=e269]:
+                - generic [ref=e270]:
                   - text: 306 points by
-                  - link "whoishiring" [ref=e292] [cursor=pointer]:
+                  - link "whoishiring" [ref=e271] [cursor=pointer]:
                     - /url: user?id=whoishiring
-                  - generic "2026-01-02T16:00:42 1767369642" [ref=e293]:
-                    - link "22 hours ago" [ref=e294] [cursor=pointer]:
+                  - generic "2026-01-02T16:00:42 1767369642" [ref=e272]:
+                    - link "22 hours ago" [ref=e273] [cursor=pointer]:
                       - /url: item?id=46466074
                   - text: "|"
-                  - link "hide" [ref=e295] [cursor=pointer]:
+                  - link "hide" [ref=e274] [cursor=pointer]:
                     - /url: hide?id=46466074&goto=news
                   - text: "|"
-                  - link "186 comments" [ref=e296] [cursor=pointer]:
+                  - link "188 comments" [ref=e275] [cursor=pointer]:
                     - /url: item?id=46466074
+            - row [ref=e276]
+            - row "13. upvote How Smell Guides Our Inner World (quantamagazine.org)" [ref=e277]:
+              - cell "13." [ref=e278]
+              - cell "upvote" [ref=e279]:
+                - link "upvote" [ref=e281] [cursor=pointer]:
+                  - /url: vote?id=46417500&how=up&goto=news
+                  - generic "upvote" [ref=e282]
+              - cell "How Smell Guides Our Inner World (quantamagazine.org)" [ref=e283]:
+                - generic [ref=e284]:
+                  - link "How Smell Guides Our Inner World" [ref=e285] [cursor=pointer]:
+                    - /url: https://www.quantamagazine.org/how-smell-guides-our-inner-world-20250703/
+                  - generic [ref=e286]:
+                    - text: (
+                    - link "quantamagazine.org" [ref=e287] [cursor=pointer]:
+                      - /url: from?site=quantamagazine.org
+                    - text: )
+            - row "21 points by anarbadalov 7 hours ago | hide | 1 comment" [ref=e288]:
+              - cell [ref=e289]
+              - cell "21 points by anarbadalov 7 hours ago | hide | 1 comment" [ref=e290]:
+                - generic [ref=e291]:
+                  - text: 21 points by
+                  - link "anarbadalov" [ref=e292] [cursor=pointer]:
+                    - /url: user?id=anarbadalov
+                  - generic "2025-12-29T04:35:32 1766982932" [ref=e293]:
+                    - link "7 hours ago" [ref=e294] [cursor=pointer]:
+                      - /url: item?id=46417500
+                  - text: "|"
+                  - link "hide" [ref=e295] [cursor=pointer]:
+                    - /url: hide?id=46417500&goto=news
+                  - text: "|"
+                  - link "1 comment" [ref=e296] [cursor=pointer]:
+                    - /url: item?id=46417500
             - row [ref=e297]
-            - row "14. upvote How Smell Guides Our Inner World (quantamagazine.org)" [ref=e298]:
+            - 'row "14. upvote GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling (github.com/tomasf)" [ref=e298]':
               - cell "14." [ref=e299]
               - cell "upvote" [ref=e300]:
                 - link "upvote" [ref=e302] [cursor=pointer]:
-                  - /url: vote?id=46417500&how=up&goto=news
+                  - /url: vote?id=46442624&how=up&goto=news
                   - generic "upvote" [ref=e303]
-              - cell "How Smell Guides Our Inner World (quantamagazine.org)" [ref=e304]:
+              - 'cell "GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling (github.com/tomasf)" [ref=e304]':
                 - generic [ref=e305]:
-                  - link "How Smell Guides Our Inner World" [ref=e306] [cursor=pointer]:
-                    - /url: https://www.quantamagazine.org/how-smell-guides-our-inner-world-20250703/
+                  - 'link "GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling" [ref=e306] [cursor=pointer]':
+                    - /url: https://github.com/tomasf/Cadova
                   - generic [ref=e307]:
                     - text: (
-                    - link "quantamagazine.org" [ref=e308] [cursor=pointer]:
-                      - /url: from?site=quantamagazine.org
+                    - link "github.com/tomasf" [ref=e308] [cursor=pointer]:
+                      - /url: from?site=github.com/tomasf
                     - text: )
-            - row "20 points by anarbadalov 7 hours ago | hide | 1 comment" [ref=e309]:
+            - row "30 points by bdcravens 5 hours ago | hide | 4 comments" [ref=e309]:
               - cell [ref=e310]
-              - cell "20 points by anarbadalov 7 hours ago | hide | 1 comment" [ref=e311]:
+              - cell "30 points by bdcravens 5 hours ago | hide | 4 comments" [ref=e311]:
                 - generic [ref=e312]:
-                  - text: 20 points by
-                  - link "anarbadalov" [ref=e313] [cursor=pointer]:
-                    - /url: user?id=anarbadalov
-                  - generic "2025-12-29T04:35:32 1766982932" [ref=e314]:
-                    - link "7 hours ago" [ref=e315] [cursor=pointer]:
-                      - /url: item?id=46417500
+                  - text: 30 points by
+                  - link "bdcravens" [ref=e313] [cursor=pointer]:
+                    - /url: user?id=bdcravens
+                  - generic "2025-12-31T09:16:58 1767172618" [ref=e314]:
+                    - link "5 hours ago" [ref=e315] [cursor=pointer]:
+                      - /url: item?id=46442624
                   - text: "|"
                   - link "hide" [ref=e316] [cursor=pointer]:
-                    - /url: hide?id=46417500&goto=news
+                    - /url: hide?id=46442624&goto=news
                   - text: "|"
-                  - link "1 comment" [ref=e317] [cursor=pointer]:
-                    - /url: item?id=46417500
+                  - link "4 comments" [ref=e317] [cursor=pointer]:
+                    - /url: item?id=46442624
             - row [ref=e318]
-            - 'row "15. upvote GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling (github.com/tomasf)" [ref=e319]':
+            - row "15. upvote A Basic Just-In-Time Compiler (2015) (nullprogram.com)" [ref=e319]:
               - cell "15." [ref=e320]
               - cell "upvote" [ref=e321]:
                 - link "upvote" [ref=e323] [cursor=pointer]:
-                  - /url: vote?id=46442624&how=up&goto=news
+                  - /url: vote?id=46471712&how=up&goto=news
                   - generic "upvote" [ref=e324]
-              - 'cell "GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling (github.com/tomasf)" [ref=e325]':
+              - cell "A Basic Just-In-Time Compiler (2015) (nullprogram.com)" [ref=e325]:
                 - generic [ref=e326]:
-                  - 'link "GitHub – tomasf/Cadova: Swift DSL for parametric 3D modeling" [ref=e327] [cursor=pointer]':
-                    - /url: https://github.com/tomasf/Cadova
+                  - link "A Basic Just-In-Time Compiler (2015)" [ref=e327] [cursor=pointer]:
+                    - /url: https://nullprogram.com/blog/2015/03/19/
                   - generic [ref=e328]:
                     - text: (
-                    - link "github.com/tomasf" [ref=e329] [cursor=pointer]:
-                      - /url: from?site=github.com/tomasf
+                    - link "nullprogram.com" [ref=e329] [cursor=pointer]:
+                      - /url: from?site=nullprogram.com
                     - text: )
-            - row "30 points by bdcravens 5 hours ago | hide | 4 comments" [ref=e330]:
+            - row "76 points by ibobev 13 hours ago | hide | 16 comments" [ref=e330]:
               - cell [ref=e331]
-              - cell "30 points by bdcravens 5 hours ago | hide | 4 comments" [ref=e332]:
+              - cell "76 points by ibobev 13 hours ago | hide | 16 comments" [ref=e332]:
                 - generic [ref=e333]:
-                  - text: 30 points by
-                  - link "bdcravens" [ref=e334] [cursor=pointer]:
-                    - /url: user?id=bdcravens
-                  - generic "2025-12-31T09:16:58 1767172618" [ref=e335]:
-                    - link "5 hours ago" [ref=e336] [cursor=pointer]:
-                      - /url: item?id=46442624
+                  - text: 76 points by
+                  - link "ibobev" [ref=e334] [cursor=pointer]:
+                    - /url: user?id=ibobev
+                  - generic "2026-01-03T01:18:07 1767403087" [ref=e335]:
+                    - link "13 hours ago" [ref=e336] [cursor=pointer]:
+                      - /url: item?id=46471712
                   - text: "|"
                   - link "hide" [ref=e337] [cursor=pointer]:
-                    - /url: hide?id=46442624&goto=news
+                    - /url: hide?id=46471712&goto=news
                   - text: "|"
-                  - link "4 comments" [ref=e338] [cursor=pointer]:
-                    - /url: item?id=46442624
+                  - link "16 comments" [ref=e338] [cursor=pointer]:
+                    - /url: item?id=46471712
             - row [ref=e339]
             - row "16. upvote Profiling with Ctrl-C (2024) (yosefk.com)" [ref=e340]:
               - cell "16." [ref=e341]
@@ -521,11 +521,11 @@
                     - link "yosefk.com" [ref=e350] [cursor=pointer]:
                       - /url: from?site=yosefk.com
                     - text: )
-            - row "8 points by hun3 3 hours ago | hide | discuss" [ref=e351]:
+            - row "9 points by hun3 3 hours ago | hide | discuss" [ref=e351]:
               - cell [ref=e352]
-              - cell "8 points by hun3 3 hours ago | hide | discuss" [ref=e353]:
+              - cell "9 points by hun3 3 hours ago | hide | discuss" [ref=e353]:
                 - generic [ref=e354]:
-                  - text: 8 points by
+                  - text: 9 points by
                   - link "hun3" [ref=e355] [cursor=pointer]:
                     - /url: user?id=hun3
                   - generic "2026-01-03T11:13:48 1767438828" [ref=e356]:
@@ -538,69 +538,69 @@
                   - link "discuss" [ref=e359] [cursor=pointer]:
                     - /url: item?id=46475296
             - row [ref=e360]
-            - row "17. upvote A Basic Just-In-Time Compiler (2015) (nullprogram.com)" [ref=e361]:
+            - row "17. upvote Linux kernel security work (kroah.com)" [ref=e361]:
               - cell "17." [ref=e362]
               - cell "upvote" [ref=e363]:
                 - link "upvote" [ref=e365] [cursor=pointer]:
-                  - /url: vote?id=46471712&how=up&goto=news
+                  - /url: vote?id=46469623&how=up&goto=news
                   - generic "upvote" [ref=e366]
-              - cell "A Basic Just-In-Time Compiler (2015) (nullprogram.com)" [ref=e367]:
+              - cell "Linux kernel security work (kroah.com)" [ref=e367]:
                 - generic [ref=e368]:
-                  - link "A Basic Just-In-Time Compiler (2015)" [ref=e369] [cursor=pointer]:
-                    - /url: https://nullprogram.com/blog/2015/03/19/
+                  - link "Linux kernel security work" [ref=e369] [cursor=pointer]:
+                    - /url: http://www.kroah.com/log/blog/2026/01/02/linux-kernel-security-work/
                   - generic [ref=e370]:
                     - text: (
-                    - link "nullprogram.com" [ref=e371] [cursor=pointer]:
-                      - /url: from?site=nullprogram.com
+                    - link "kroah.com" [ref=e371] [cursor=pointer]:
+                      - /url: from?site=kroah.com
                     - text: )
-            - row "76 points by ibobev 13 hours ago | hide | 16 comments" [ref=e372]:
+            - row "126 points by chmaynard 16 hours ago | hide | 56 comments" [ref=e372]:
               - cell [ref=e373]
-              - cell "76 points by ibobev 13 hours ago | hide | 16 comments" [ref=e374]:
+              - cell "126 points by chmaynard 16 hours ago | hide | 56 comments" [ref=e374]:
                 - generic [ref=e375]:
-                  - text: 76 points by
-                  - link "ibobev" [ref=e376] [cursor=pointer]:
-                    - /url: user?id=ibobev
-                  - generic "2026-01-03T01:18:07 1767403087" [ref=e377]:
-                    - link "13 hours ago" [ref=e378] [cursor=pointer]:
-                      - /url: item?id=46471712
+                  - text: 126 points by
+                  - link "chmaynard" [ref=e376] [cursor=pointer]:
+                    - /url: user?id=chmaynard
+                  - generic "2026-01-02T21:31:34 1767389494" [ref=e377]:
+                    - link "16 hours ago" [ref=e378] [cursor=pointer]:
+                      - /url: item?id=46469623
                   - text: "|"
                   - link "hide" [ref=e379] [cursor=pointer]:
-                    - /url: hide?id=46471712&goto=news
+                    - /url: hide?id=46469623&goto=news
                   - text: "|"
-                  - link "16 comments" [ref=e380] [cursor=pointer]:
-                    - /url: item?id=46471712
+                  - link "56 comments" [ref=e380] [cursor=pointer]:
+                    - /url: item?id=46469623
             - row [ref=e381]
-            - row "18. upvote Linux kernel security work (kroah.com)" [ref=e382]:
+            - 'row "18. upvote IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf] (github.com/iquestlab)" [ref=e382]':
               - cell "18." [ref=e383]
               - cell "upvote" [ref=e384]:
                 - link "upvote" [ref=e386] [cursor=pointer]:
-                  - /url: vote?id=46469623&how=up&goto=news
+                  - /url: vote?id=46472667&how=up&goto=news
                   - generic "upvote" [ref=e387]
-              - cell "Linux kernel security work (kroah.com)" [ref=e388]:
+              - 'cell "IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf] (github.com/iquestlab)" [ref=e388]':
                 - generic [ref=e389]:
-                  - link "Linux kernel security work" [ref=e390] [cursor=pointer]:
-                    - /url: http://www.kroah.com/log/blog/2026/01/02/linux-kernel-security-work/
+                  - 'link "IQuest-Coder: A new open-source code model beats Claude Sonnet 4.5 and GPT 5.1 [pdf]" [ref=e390] [cursor=pointer]':
+                    - /url: https://github.com/IQuestLab/IQuest-Coder-V1/blob/main/papers/IQuest_Coder_Technical_Report.pdf
                   - generic [ref=e391]:
                     - text: (
-                    - link "kroah.com" [ref=e392] [cursor=pointer]:
-                      - /url: from?site=kroah.com
+                    - link "github.com/iquestlab" [ref=e392] [cursor=pointer]:
+                      - /url: from?site=github.com/iquestlab
                     - text: )
-            - row "126 points by chmaynard 16 hours ago | hide | 56 comments" [ref=e393]:
+            - row "111 points by shenli3514 10 hours ago | hide | 33 comments" [ref=e393]:
               - cell [ref=e394]
-              - cell "126 points by chmaynard 16 hours ago | hide | 56 comments" [ref=e395]:
+              - cell "111 points by shenli3514 10 hours ago | hide | 33 comments" [ref=e395]:
                 - generic [ref=e396]:
-                  - text: 126 points by
-                  - link "chmaynard" [ref=e397] [cursor=pointer]:
-                    - /url: user?id=chmaynard
-                  - generic "2026-01-02T21:31:34 1767389494" [ref=e398]:
-                    - link "16 hours ago" [ref=e399] [cursor=pointer]:
-                      - /url: item?id=46469623
+                  - text: 111 points by
+                  - link "shenli3514" [ref=e397] [cursor=pointer]:
+                    - /url: user?id=shenli3514
+                  - generic "2026-01-03T04:01:03 1767412863" [ref=e398]:
+                    - link "10 hours ago" [ref=e399] [cursor=pointer]:
+                      - /url: item?id=46472667
                   - text: "|"
                   - link "hide" [ref=e400] [cursor=pointer]:
-                    - /url: hide?id=46469623&goto=news
+                    - /url: hide?id=46472667&goto=news
                   - text: "|"
-                  - link "56 comments" [ref=e401] [cursor=pointer]:
-                    - /url: item?id=46469623
+                  - link "33 comments" [ref=e401] [cursor=pointer]:
+                    - /url: item?id=46472667
             - row [ref=e402]
             - row "19. upvote UK company sends factory with 1,000C furnace into space (bbc.co.uk)" [ref=e403]:
               - cell "19." [ref=e404]
@@ -617,11 +617,11 @@
                     - link "bbc.co.uk" [ref=e413] [cursor=pointer]:
                       - /url: from?site=bbc.co.uk
                     - text: )
-            - row "73 points by vekerdyb 12 hours ago | hide | 32 comments" [ref=e414]:
+            - row "75 points by vekerdyb 12 hours ago | hide | 32 comments" [ref=e414]:
               - cell [ref=e415]
-              - cell "73 points by vekerdyb 12 hours ago | hide | 32 comments" [ref=e416]:
+              - cell "75 points by vekerdyb 12 hours ago | hide | 32 comments" [ref=e416]:
                 - generic [ref=e417]:
-                  - text: 73 points by
+                  - text: 75 points by
                   - link "vekerdyb" [ref=e418] [cursor=pointer]:
                     - /url: user?id=vekerdyb
                   - generic "2025-12-31T08:04:30 1767168270" [ref=e419]:
@@ -713,15 +713,15 @@
                     - link "github.com/lyehe" [ref=e476] [cursor=pointer]:
                       - /url: from?site=github.com/lyehe
                     - text: )
-            - row "43 points by yxl448 9 hours ago | hide | 10 comments" [ref=e477]:
+            - row "43 points by yxl448 10 hours ago | hide | 10 comments" [ref=e477]:
               - cell [ref=e478]
-              - cell "43 points by yxl448 9 hours ago | hide | 10 comments" [ref=e479]:
+              - cell "43 points by yxl448 10 hours ago | hide | 10 comments" [ref=e479]:
                 - generic [ref=e480]:
                   - text: 43 points by
                   - link "yxl448" [ref=e481] [cursor=pointer]:
                     - /url: user?id=yxl448
                   - generic "2026-01-03T04:22:29 1767414149" [ref=e482]:
-                    - link "9 hours ago" [ref=e483] [cursor=pointer]:
+                    - link "10 hours ago" [ref=e483] [cursor=pointer]:
                       - /url: item?id=46472772
                   - text: "|"
                   - link "hide" [ref=e484] [cursor=pointer]:
@@ -762,159 +762,159 @@
                   - link "3 comments" [ref=e506] [cursor=pointer]:
                     - /url: item?id=46472230
             - row [ref=e507]
-            - 'row "24. upvote Show HN: The ASCII Side of the Moon (aleyan.com)" [ref=e508]':
+            - row "24. upvote Unix v4 (1973) – Live Terminal (unixv4.dev)" [ref=e508]:
               - cell "24." [ref=e509]
               - cell "upvote" [ref=e510]:
                 - link "upvote" [ref=e512] [cursor=pointer]:
-                  - /url: vote?id=46421045&how=up&goto=news
+                  - /url: vote?id=46468283&how=up&goto=news
                   - generic "upvote" [ref=e513]
-              - 'cell "Show HN: The ASCII Side of the Moon (aleyan.com)" [ref=e514]':
+              - cell "Unix v4 (1973) – Live Terminal (unixv4.dev)" [ref=e514]:
                 - generic [ref=e515]:
-                  - 'link "Show HN: The ASCII Side of the Moon" [ref=e516] [cursor=pointer]':
-                    - /url: https://aleyan.com/projects/ascii-side-of-the-moon/?lat=32.72&lon=-117.16&date=2025-12-29T14%3A24Z
+                  - link "Unix v4 (1973) – Live Terminal" [ref=e516] [cursor=pointer]:
+                    - /url: https://unixv4.dev/
                   - generic [ref=e517]:
                     - text: (
-                    - link "aleyan.com" [ref=e518] [cursor=pointer]:
-                      - /url: from?site=aleyan.com
+                    - link "unixv4.dev" [ref=e518] [cursor=pointer]:
+                      - /url: from?site=unixv4.dev
                     - text: )
-            - row "5 points by aleyan 3 hours ago | hide | discuss" [ref=e519]:
+            - row "155 points by pjmlp 19 hours ago | hide | 76 comments" [ref=e519]:
               - cell [ref=e520]
-              - cell "5 points by aleyan 3 hours ago | hide | discuss" [ref=e521]:
+              - cell "155 points by pjmlp 19 hours ago | hide | 76 comments" [ref=e521]:
                 - generic [ref=e522]:
-                  - text: 5 points by
-                  - link "aleyan" [ref=e523] [cursor=pointer]:
-                    - /url: user?id=aleyan
-                  - generic "2025-12-29T14:24:08 1767018248" [ref=e524]:
-                    - link "3 hours ago" [ref=e525] [cursor=pointer]:
-                      - /url: item?id=46421045
+                  - text: 155 points by
+                  - link "pjmlp" [ref=e523] [cursor=pointer]:
+                    - /url: user?id=pjmlp
+                  - generic "2026-01-02T19:18:36 1767381516" [ref=e524]:
+                    - link "19 hours ago" [ref=e525] [cursor=pointer]:
+                      - /url: item?id=46468283
                   - text: "|"
                   - link "hide" [ref=e526] [cursor=pointer]:
-                    - /url: hide?id=46421045&goto=news
+                    - /url: hide?id=46468283&goto=news
                   - text: "|"
-                  - link "discuss" [ref=e527] [cursor=pointer]:
-                    - /url: item?id=46421045
+                  - link "76 comments" [ref=e527] [cursor=pointer]:
+                    - /url: item?id=46468283
             - row [ref=e528]
-            - row "25. upvote Unix v4 (1973) – Live Terminal (unixv4.dev)" [ref=e529]:
+            - 'row "25. upvote Fighting Fire with Fire: Scalable Oral Exams (behind-the-enemy-lines.com)" [ref=e529]':
               - cell "25." [ref=e530]
               - cell "upvote" [ref=e531]:
                 - link "upvote" [ref=e533] [cursor=pointer]:
-                  - /url: vote?id=46468283&how=up&goto=news
+                  - /url: vote?id=46467677&how=up&goto=news
                   - generic "upvote" [ref=e534]
-              - cell "Unix v4 (1973) – Live Terminal (unixv4.dev)" [ref=e535]:
+              - 'cell "Fighting Fire with Fire: Scalable Oral Exams (behind-the-enemy-lines.com)" [ref=e535]':
                 - generic [ref=e536]:
-                  - link "Unix v4 (1973) – Live Terminal" [ref=e537] [cursor=pointer]:
-                    - /url: https://unixv4.dev/
+                  - 'link "Fighting Fire with Fire: Scalable Oral Exams" [ref=e537] [cursor=pointer]':
+                    - /url: https://www.behind-the-enemy-lines.com/2025/12/fighting-fire-with-fire-scalable-oral.html
                   - generic [ref=e538]:
                     - text: (
-                    - link "unixv4.dev" [ref=e539] [cursor=pointer]:
-                      - /url: from?site=unixv4.dev
+                    - link "behind-the-enemy-lines.com" [ref=e539] [cursor=pointer]:
+                      - /url: from?site=behind-the-enemy-lines.com
                     - text: )
-            - row "155 points by pjmlp 18 hours ago | hide | 76 comments" [ref=e540]:
+            - row "177 points by sethbannon 20 hours ago | hide | 232 comments" [ref=e540]:
               - cell [ref=e541]
-              - cell "155 points by pjmlp 18 hours ago | hide | 76 comments" [ref=e542]:
+              - cell "177 points by sethbannon 20 hours ago | hide | 232 comments" [ref=e542]:
                 - generic [ref=e543]:
-                  - text: 155 points by
-                  - link "pjmlp" [ref=e544] [cursor=pointer]:
-                    - /url: user?id=pjmlp
-                  - generic "2026-01-02T19:18:36 1767381516" [ref=e545]:
-                    - link "18 hours ago" [ref=e546] [cursor=pointer]:
-                      - /url: item?id=46468283
+                  - text: 177 points by
+                  - link "sethbannon" [ref=e544] [cursor=pointer]:
+                    - /url: user?id=sethbannon
+                  - generic "2026-01-02T18:18:47 1767377927" [ref=e545]:
+                    - link "20 hours ago" [ref=e546] [cursor=pointer]:
+                      - /url: item?id=46467677
                   - text: "|"
                   - link "hide" [ref=e547] [cursor=pointer]:
-                    - /url: hide?id=46468283&goto=news
+                    - /url: hide?id=46467677&goto=news
                   - text: "|"
-                  - link "76 comments" [ref=e548] [cursor=pointer]:
-                    - /url: item?id=46468283
+                  - link "232 comments" [ref=e548] [cursor=pointer]:
+                    - /url: item?id=46467677
             - row [ref=e549]
-            - 'row "26. upvote Fighting Fire with Fire: Scalable Oral Exams (behind-the-enemy-lines.com)" [ref=e550]':
+            - row "26. upvote Accounting for Computer Scientists (2011) (kleppmann.com)" [ref=e550]:
               - cell "26." [ref=e551]
               - cell "upvote" [ref=e552]:
                 - link "upvote" [ref=e554] [cursor=pointer]:
-                  - /url: vote?id=46467677&how=up&goto=news
+                  - /url: vote?id=46467651&how=up&goto=news
                   - generic "upvote" [ref=e555]
-              - 'cell "Fighting Fire with Fire: Scalable Oral Exams (behind-the-enemy-lines.com)" [ref=e556]':
+              - cell "Accounting for Computer Scientists (2011) (kleppmann.com)" [ref=e556]:
                 - generic [ref=e557]:
-                  - 'link "Fighting Fire with Fire: Scalable Oral Exams" [ref=e558] [cursor=pointer]':
-                    - /url: https://www.behind-the-enemy-lines.com/2025/12/fighting-fire-with-fire-scalable-oral.html
+                  - link "Accounting for Computer Scientists (2011)" [ref=e558] [cursor=pointer]:
+                    - /url: https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html
                   - generic [ref=e559]:
                     - text: (
-                    - link "behind-the-enemy-lines.com" [ref=e560] [cursor=pointer]:
-                      - /url: from?site=behind-the-enemy-lines.com
+                    - link "kleppmann.com" [ref=e560] [cursor=pointer]:
+                      - /url: from?site=kleppmann.com
                     - text: )
-            - row "177 points by sethbannon 19 hours ago | hide | 232 comments" [ref=e561]:
+            - row "128 points by tosh 19 hours ago | hide | 49 comments" [ref=e561]:
               - cell [ref=e562]
-              - cell "177 points by sethbannon 19 hours ago | hide | 232 comments" [ref=e563]:
+              - cell "128 points by tosh 19 hours ago | hide | 49 comments" [ref=e563]:
                 - generic [ref=e564]:
-                  - text: 177 points by
-                  - link "sethbannon" [ref=e565] [cursor=pointer]:
-                    - /url: user?id=sethbannon
-                  - generic "2026-01-02T18:18:47 1767377927" [ref=e566]:
+                  - text: 128 points by
+                  - link "tosh" [ref=e565] [cursor=pointer]:
+                    - /url: user?id=tosh
+                  - generic "2026-01-02T18:16:07 1767377767" [ref=e566]:
                     - link "19 hours ago" [ref=e567] [cursor=pointer]:
-                      - /url: item?id=46467677
+                      - /url: item?id=46467651
                   - text: "|"
                   - link "hide" [ref=e568] [cursor=pointer]:
-                    - /url: hide?id=46467677&goto=news
+                    - /url: hide?id=46467651&goto=news
                   - text: "|"
-                  - link "232 comments" [ref=e569] [cursor=pointer]:
-                    - /url: item?id=46467677
+                  - link "49 comments" [ref=e569] [cursor=pointer]:
+                    - /url: item?id=46467651
             - row [ref=e570]
-            - row "27. upvote Accounting for Computer Scientists (2011) (kleppmann.com)" [ref=e571]:
+            - 'row "27. upvote Ask HN: Who wants to be hired? (January 2026)" [ref=e571]':
               - cell "27." [ref=e572]
               - cell "upvote" [ref=e573]:
                 - link "upvote" [ref=e575] [cursor=pointer]:
-                  - /url: vote?id=46467651&how=up&goto=news
-                  - generic "upvote" [ref=e576]
-              - cell "Accounting for Computer Scientists (2011) (kleppmann.com)" [ref=e577]:
-                - generic [ref=e578]:
-                  - link "Accounting for Computer Scientists (2011)" [ref=e579] [cursor=pointer]:
-                    - /url: https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html
-                  - generic [ref=e580]:
-                    - text: (
-                    - link "kleppmann.com" [ref=e581] [cursor=pointer]:
-                      - /url: from?site=kleppmann.com
-                    - text: )
-            - row "128 points by tosh 19 hours ago | hide | 49 comments" [ref=e582]:
-              - cell [ref=e583]
-              - cell "128 points by tosh 19 hours ago | hide | 49 comments" [ref=e584]:
-                - generic [ref=e585]:
-                  - text: 128 points by
-                  - link "tosh" [ref=e586] [cursor=pointer]:
-                    - /url: user?id=tosh
-                  - generic "2026-01-02T18:16:07 1767377767" [ref=e587]:
-                    - link "19 hours ago" [ref=e588] [cursor=pointer]:
-                      - /url: item?id=46467651
-                  - text: "|"
-                  - link "hide" [ref=e589] [cursor=pointer]:
-                    - /url: hide?id=46467651&goto=news
-                  - text: "|"
-                  - link "49 comments" [ref=e590] [cursor=pointer]:
-                    - /url: item?id=46467651
-            - row [ref=e591]
-            - 'row "28. upvote Ask HN: Who wants to be hired? (January 2026)" [ref=e592]':
-              - cell "28." [ref=e593]
-              - cell "upvote" [ref=e594]:
-                - link "upvote" [ref=e596] [cursor=pointer]:
                   - /url: vote?id=46466073&how=up&goto=news
-                  - generic "upvote" [ref=e597]
-              - 'cell "Ask HN: Who wants to be hired? (January 2026)" [ref=e598]':
-                - 'link "Ask HN: Who wants to be hired? (January 2026)" [ref=e600] [cursor=pointer]':
+                  - generic "upvote" [ref=e576]
+              - 'cell "Ask HN: Who wants to be hired? (January 2026)" [ref=e577]':
+                - 'link "Ask HN: Who wants to be hired? (January 2026)" [ref=e579] [cursor=pointer]':
                   - /url: item?id=46466073
-            - row "124 points by whoishiring 22 hours ago | hide | 231 comments" [ref=e601]:
-              - cell [ref=e602]
-              - cell "124 points by whoishiring 22 hours ago | hide | 231 comments" [ref=e603]:
-                - generic [ref=e604]:
+            - row "124 points by whoishiring 22 hours ago | hide | 231 comments" [ref=e580]:
+              - cell [ref=e581]
+              - cell "124 points by whoishiring 22 hours ago | hide | 231 comments" [ref=e582]:
+                - generic [ref=e583]:
                   - text: 124 points by
-                  - link "whoishiring" [ref=e605] [cursor=pointer]:
+                  - link "whoishiring" [ref=e584] [cursor=pointer]:
                     - /url: user?id=whoishiring
-                  - generic "2026-01-02T16:00:42 1767369642" [ref=e606]:
-                    - link "22 hours ago" [ref=e607] [cursor=pointer]:
+                  - generic "2026-01-02T16:00:42 1767369642" [ref=e585]:
+                    - link "22 hours ago" [ref=e586] [cursor=pointer]:
                       - /url: item?id=46466073
                   - text: "|"
-                  - link "hide" [ref=e608] [cursor=pointer]:
+                  - link "hide" [ref=e587] [cursor=pointer]:
                     - /url: hide?id=46466073&goto=news
                   - text: "|"
-                  - link "231 comments" [ref=e609] [cursor=pointer]:
+                  - link "231 comments" [ref=e588] [cursor=pointer]:
                     - /url: item?id=46466073
+            - row [ref=e589]
+            - 'row "28. upvote Show HN: The ASCII Side of the Moon (aleyan.com)" [ref=e590]':
+              - cell "28." [ref=e591]
+              - cell "upvote" [ref=e592]:
+                - link "upvote" [ref=e594] [cursor=pointer]:
+                  - /url: vote?id=46421045&how=up&goto=news
+                  - generic "upvote" [ref=e595]
+              - 'cell "Show HN: The ASCII Side of the Moon (aleyan.com)" [ref=e596]':
+                - generic [ref=e597]:
+                  - 'link "Show HN: The ASCII Side of the Moon" [ref=e598] [cursor=pointer]':
+                    - /url: https://aleyan.com/projects/ascii-side-of-the-moon/?lat=32.72&lon=-117.16&date=2025-12-29T14%3A24Z
+                  - generic [ref=e599]:
+                    - text: (
+                    - link "aleyan.com" [ref=e600] [cursor=pointer]:
+                      - /url: from?site=aleyan.com
+                    - text: )
+            - row "5 points by aleyan 3 hours ago | hide | discuss" [ref=e601]:
+              - cell [ref=e602]
+              - cell "5 points by aleyan 3 hours ago | hide | discuss" [ref=e603]:
+                - generic [ref=e604]:
+                  - text: 5 points by
+                  - link "aleyan" [ref=e605] [cursor=pointer]:
+                    - /url: user?id=aleyan
+                  - generic "2025-12-29T14:24:08 1767018248" [ref=e606]:
+                    - link "3 hours ago" [ref=e607] [cursor=pointer]:
+                      - /url: item?id=46421045
+                  - text: "|"
+                  - link "hide" [ref=e608] [cursor=pointer]:
+                    - /url: hide?id=46421045&goto=news
+                  - text: "|"
+                  - link "discuss" [ref=e609] [cursor=pointer]:
+                    - /url: item?id=46421045
             - row [ref=e610]
             - row "29. upvote The rsync algorithm (1996) [pdf] (cmu.edu)" [ref=e611]:
               - cell "29." [ref=e612]
