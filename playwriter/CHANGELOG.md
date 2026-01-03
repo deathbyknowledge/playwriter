@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.0.36
+
+### Features
+
+- **Visual Aria Ref Labels**: New `showAriaRefLabels()` and `hideAriaRefLabels()` functions overlay Vimium-style labels on interactive elements
+  - Labels show aria-ref IDs (e.g., "e1", "e5") that can be used with `page.locator('aria-ref=e5')`
+  - Color-coded by element type: yellow=links, orange=buttons, coral=inputs, pink=checkboxes, peach=sliders, salmon=menus, amber=tabs
+  - Only shows truly interactive roles (button, link, textbox, combobox, checkbox, etc.)
+  - Skips elements covered by opaque overlays using `elementsFromPoint()`
+  - Greedy overlap prevention skips labels that would overlap with already-placed ones
+  - Auto-hides after 5 seconds to prevent stale labels (timer cancelled if called again)
+  - Available in MCP execute context
+
+### Usage
+
+```js
+const { snapshot, labelCount } = await showAriaRefLabels({ page });
+await page.screenshot({ path: '/tmp/labeled-page.png' });
+await page.locator('aria-ref=e5').click();
+// Labels auto-hide after 5 seconds, or call hideAriaRefLabels({ page }) manually
+```
+
 ## 0.0.35
 
 ### Patch Changes
