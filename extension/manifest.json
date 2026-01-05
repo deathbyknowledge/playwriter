@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Playwriter MCP",
-  "version": "0.0.67",
-  "description": "Automate your Browser using Cursor, Claude, VS Code. More capable and context efficient than Playwright MCP.",
-  "permissions": ["debugger", "tabGroups", "contextMenus", "tabs"],
+  "name": "Rebrow",
+  "version": "0.1.0",
+  "description": "Remote browser control - let AI agents control your browser",
+  "permissions": ["debugger", "tabGroups", "contextMenus", "tabs", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "lib/background.mjs",
     "type": "module"
   },
   "action": {
-    "default_title": "Click to attach debugger",
+    "default_title": "Configure Rebrow",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-gray-16.png",
       "32": "icons/icon-gray-32.png",

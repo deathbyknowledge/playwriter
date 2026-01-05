@@ -1,0 +1,28 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "rebrow"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Durable Object for the CDP relay
+[[durable_objects.bindings]]
+name = "RELAY"
+class_name = "RebrowRelay"
+
+# Sandbox for executing Playwright code
+# Binding must be named 'Sandbox' for proxyToSandbox to work
+[[durable_objects.bindings]]
+name = "Sandbox"
+class_name = "Sandbox"
+
+# Container image for Sandbox (local Dockerfile for wrangler dev)
+[[containers]]
+class_name = "Sandbox"
+image = "./Dockerfile"
+
+# Migrations for the Durable Objects
+[[migrations]]
+tag = "v1"
+new_classes = ["RebrowRelay"]
+new_sqlite_classes = ["Sandbox"]
+

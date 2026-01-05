@@ -1,25 +1,17 @@
 {
-    "name": "root",
-    "private": true,
-    "scripts": {
-        "test": "pnpm --filter playwriter test",
-        "watch": "pnpm -r watch",
-        "build": "pnpm -r build",
-        "agents.md": "agentsdotmd ./PLAYWRITER_AGENTS.md core.md typescript.md pnpm.md vitest.md changelog.md docs-writing.md github.md playwright.md zod.md gitchamber.md",
-        "release": "pnpm build && rm -f extension.zip && cd extension && zip -r ../extension.zip dist && cd .. && realpath extension.zip | pbcopy && open 'https://chrome.google.com/webstore/devconsole/a379d569-9533-44e4-9749-0368f6dbf878/jfeammnjpkecdekppnclgkkffahnhfhe/edit/package'"
-    },
-    "devDependencies": {
-        "@changesets/cli": "^2.29.7",
-        "prettier": "^3.6.2",
-        "tsx": "^4.20.6",
-        "typescript": "^5.9.3",
-        "vite": "^7.2.2",
-        "vitest": "^4.0.8"
-    },
-    "repository": "https://github.com/remorses/",
-    "author": "remorses <beats.by.morse@gmail.com>",
-    "license": "",
-    "dependencies": {
-        "mcp-extension": "workspace:*"
-    }
+  "name": "rebrow",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter rebrow dev",
+    "deploy": "pnpm --filter rebrow deploy",
+    "release:extension": "pnpm build && rm -f extension.zip && cd extension && zip -r ../extension.zip dist && cd .."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
+  },
+  "license": "MIT"
 }

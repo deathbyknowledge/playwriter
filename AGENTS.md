@@ -1,498 +1,70 @@
-this codebase has the codebase for playwriter
+# Rebrow - Remote Browser Control
 
-the extension uses chrome.debugger to manage the user browser
+This codebase contains:
 
-read ./README.md for an overview of how this extension and mcp work
-read playwriter/src/prompt.md to understand how the MCP works
+- **rebrow/** - Cloudflare Worker that relays CDP (Chrome DevTools Protocol) between the extension and AI agents
+- **extension/** - Chrome extension that connects browser tabs to the relay
 
-## backward compatibility
+## Architecture
 
-breaking changes to the WS protocol MUST never be made. publishing the extension code will never be instant, which means the extension must keep working with newer versions of the MCP and WS relay server.
+- User installs extension in Chrome
+- Extension connects to Cloudflare Worker at `wss://worker/room/:roomId/extension`
+- AI agent connects to MCP endpoint at `https://worker/room/:roomId/mcp-server`
+- Worker runs Playwright code in a Sandbox container to control the browser
+- Tabs are identified by sessionId or targetId (CDP concepts) or tabId (chrome debugger concept)
 
-## architecture
+## Development
 
-- user installs the extension in chrome. we assume there is only one chrome window for now, the first opened. 
-- extension connects to a websocket server. on 19988. if this server is still not open, it retries connecting in a loop
-- the MCP spawns the ws server if not already listening on 19988, in background. the mcp then connects to this same server with a playwright client
-- the server exposes /cdp/client-id which is used by playwright clients to communicate with the extension
-- the extension instead connects to /extension which is used to receive cdp commands and send responses and cdp events.
-- some events are treated specially for example because
-  - we need to send attachedToTarget to let playwright know which pages are available
-  - we need to send detachedFromTarget when we disable the extension in a tab
-  - a few more events need custom handling
-- tabs are identified by sessionId or targetId (CDP concepts) or tabId (chrome debugger concept only)
-
-mcp.ts MUST never use console.log. only console.error
-
-write code that will run on all platforms: mac, linux, windows. especially around paths handling and command execution
-
-## development
-
-extension/ contains the chrome extension code. you need to run `pnpm build` to make it ready to be loaded in chrome. the extension folder chrome will use is extension/dist
-
-when I ask you to release extension run package.json release script
-
-playwriter contains the ws server and MCP code. also the tests for the mcp are there. playwriter/src/prompt.md contains the docs for the MCP the agent will use. you should add there important sections that help the agent control the browser well with the MCP interface 
-
-playwriter/src/resource.md is for more generic knowledge about playwright that the agent can use when necessary, for things like best practices for selecting locators on the page
-
-## CDP docs
-
-here are some commands you can run to fetch does about CDP various domains (events and commands namespaces)
-
-```
-curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Target.pdl # manage “targets”: pages, iframes, workers, etc., and attach/detach sessions
-curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Browser.pdl # top-level browser control: version info, window management, permission settings, etc.
-curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Page.pdl – navigate, reload, screenshot, PDF, frame management, dialogs, and page lifecycle events.
-curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Emulation.pdl # emulate device metrics, viewport, timezone, locale, geolocation, media type, CPU, etc.
-```
-
-you can list other files in that folder on github to read more if you need to control things like DOM, performance, etc
-
-## testing
-
-run `cd playwriter && pnpm test` to test the extension and mcp and CDP directly in a chrome instance automated. with the extension loaded too.
-
-the test script will also pass -u to update some inline snapshots used
-
-you can run singular tests with `-t "testname"`
-
-each test() block should reset the extension connection to make sure tests are independent.
-
-NEVER call browser.close() in tests or any other code that interacts with our CDP endpoint
-
-remember that every time the extension is activated in a tab that tab gets added to the available pages. so if you toggle the extension and then do .newPage() there will be 2 pages, not 1.
-
-to debug server or extension issues you can also inspect the file @playwriter/relay-server.log to see both extension and server logs. with all cdp events sent. to see if there are events missing or something broken. this file is recreated every time the server is started and appended in real time. use rg to only read relevant lines and parts because it can get quite long
-
-IMPORTANT: `pnpm test` will take about 30 seconds so set a timeout of at least 3600ms when running the pnpm test bash command
-
-## changelogs
-
-when you do an important change, update relevant CHANGELOG.md files for each package.
-
-also bump package.json versions and IMPORTANT also the extension/manifest.json version too
-
-## debugging playwriter mcp issues
-
-sometimes the user will ask you to debug an mcp issue. to do this you may want to add logs to the mcp and server. to do this you will also need to restart the server so we use the latest code. restarting the mcp yourself is not possible. instead you will need to ask the user to do it or write a test case, where the mcp can be reloaded. also making changes in the extension will not work. you will have to write a test case for that to work. you can ask the user to reconnect these too. for reloading the extension you can run the `pnpm build` script and do `osascript -e 'tell application "Google Chrome" to open location "chrome://extensions/?id=elnnakgjclnapgflmidlpobefkdmapdm"'` to make it easier for the user to reload it
-
-if the problem was in the ws server you can restart that yourself killing process listening on 19988 and sending a new mcp call.
-
-# core guidelines
-
-when summarizing changes at the end of the message, be super short, a few words and in bullet points, use bold text to highlight important keywords. use markdown.
-
-please ask questions and confirm assumptions before generating complex architecture code.
-
-NEVER run commands with & at the end to run them in the background. this is leaky and harmful! instead ask me to run commands in the background using tmux if needed.
-
-NEVER commit yourself unless asked to do so. I will commit the code myself.
-
-NEVER use git to revert files to previous state if you did not create those files yourself! there can be user changes in files you touched, if you revert those changes the user will be very upset!
-
-## files
-
-always use kebab case for new filenames. never use uppercase letters in filenames
-
-never write temporary files to /tmp. instead write them to a local ./tmp folder instead. make sure it is in .gitignore too
-
-## see files in the repo
-
-use `git ls-files | tree --fromfile` to see files in the repo. this command will ignore files ignored by git
-
-## handling unexpected file contents after a read or write
-
-if you find code that was not there since the last time you read the file it means the user or another agent edited the file. do not revert the changes that were added. instead keep them and integrate them with your new changes
-
-IMPORTANT: NEVER commit your changes unless clearly and specifically asked to!
-
-## opening me files in zed to show me a specific portion of code
-
-you can open files when i ask me "open in zed the line where ..." using the command `zed path/to/file:line`
-
-# typescript
-
-- ALWAYS use normal imports instead of dynamic imports, unless there is an issue with es module only packages and you are in a commonjs package (this is rare).
-
-- use a single object argument instead of multiple positional args: use object arguments for new typescript functions if the function would accept more than one argument, so it is more readable, ({a,b,c}) instead of (a,b,c). this way you can use the object as a sort of named argument feature, where order of arguments does not matter and it's easier to discover parameters.
-
-- always add the {} block body in arrow functions: arrow functions should never be written as `onClick={(x) => setState('')}`. NEVER. instead you should ALWAYS write `onClick={() => {setState('')}}`. this way it's easy to add new statements in the arrow function without refactoring it.
-
-- in array operations .map, .filter, .reduce and .flatMap are preferred over .forEach and for of loops. For example prefer doing `.push(...array.map(x => x.items))` over mutating array variables inside for loops. Always think of how to turn for loops into expressions using .map, .filter or .flatMap if you ever are about to write a for loop.
-
-- if you encounter typescript errors like "undefined | T is not assignable to T" after .filter(Boolean) operations: use a guarded function instead of Boolean: `.filter(isTruthy)`. implemented as `function isTruthy<T>(value: T): value is NonNullable<T> { return Boolean(value) }`
-
-- minimize useless comments: do not add useless comments if the code is self descriptive. only add comments if requested or if this was a change that i asked for, meaning it is not obvious code and needs some inline documentation. if a comment is required because the part of the code was result of difficult back and forth with me, keep it very short.
-
-- ALWAYS add all information encapsulated in my prompt to comments: when my prompt is super detailed and in depth, all this information should be added to comments in your code. this is because if the prompt is very detailed it must be the fruit of a lot of research. all this information would be lost if you don't put it in the code. next LLM calls would misinterpret the code and miss context.
-
-- NEVER write comments that reference changes between previous and old code generated between iterations of our conversation. do that in prompt instead. comments should be used for information of the current code. code that is deleted does not matter.
-
-- use early returns (and breaks in loops): do not nest code too much. follow the go best practice of if statements: avoid else, nest as little as possible, use top level ifs. minimize nesting. instead of doing `if (x) { if (b) {} }` you should do `if (x && b) {};` for example. you can always convert multiple nested ifs or elses into many linear ifs at one nesting level. use the @think tool for this if necessary.
-
-- typecheck after updating code: after any change to typescript code ALWAYS run the `pnpm typecheck` script of that package, or if there is no typecheck script run `pnpm tsc` yourself
-
-- do not use any: you must NEVER use any. if you find yourself using `as any` or `:any`, use the @think tool to think hard if there are types you can import instead. do even a search in the project for what the type could be. any should be used as a last resort.
-
-- NEVER do `(x as any).field` or `'field' in x` before checking if the code compiles first without it. the code probably doesn't need any or the in check. even if it does not compile, use think tool first! before adding (x as any).something, ALWAYS read the .d.ts to understand the types
-
-- do not declare uninitialized variables that are defined later in the flow. instead use an IIFE with returns. this way there is less state. also define the type of the variable before the iife. here is an example:
-
-- use || over in: avoid 'x' in obj checks. prefer doing `obj?.x || ''` over doing `'x' in obj ? obj.x : ''`. only use the in operator if that field causes problems in typescript checks because typescript thinks the field is missing, as a last resort.
-
-- when creating urls from a path and a base url, prefer using `new URL(path, baseUrl).toString()` instead of normal string interpolation. use type-safe react-router `href` or spiceflow `this.safePath` (available inside routes) if possible
-
-- for node built-in imports, never import singular exported names. instead do `import fs from 'node:fs'`, same for path, os, etc.
-
-- NEVER start the development server with pnpm dev yourself. there is no reason to do so, even with &
-
-- When creating classes do not add setters and getters for a simple private field. instead make the field public directly so user can get it or set it himself without abstractions on top
-
-- if you encounter typescript lint errors for an npm package, read the node_modules/package/\*.d.ts files to understand the typescript types of the package. if you cannot understand them, ask me to help you with it.
-
-- NEVER silently suppress errors in catch {} blocks if they contain more than one function call
-```ts
-// BAD. DO NOT DO THIS
-let favicon: string | undefined;
-if (docsConfig?.favicon) {
-  if (typeof docsConfig.favicon === "string") {
-    favicon = docsConfig.favicon;
-  } else if (docsConfig.favicon?.light) {
-    // Use light favicon as default, could be enhanced with theme detection
-    favicon = docsConfig.favicon.light;
-  }
-}
-// DO THIS. use an iife. Immediately Invoked Function Expression
-const favicon: string = (() => {
-  if (!docsConfig?.favicon) {
-    return "";
-  }
-  if (typeof docsConfig.favicon === "string") {
-    return docsConfig.favicon;
-  }
-  if (docsConfig.favicon?.light) {
-    // Use light favicon as default, could be enhanced with theme detection
-    return docsConfig.favicon.light;
-  }
-  return "";
-})();
-// if you already know the type use it:
-const favicon: string = () => {
-  // ...
-};
-```
-
-- when a package has to import files from another packages in the workspace never add a new tsconfig path, instead add that package as a workspace dependency using `pnpm i "package@workspace:*"`
-
-NEVER use require. always esm imports
-
-always try to use non-relative imports. each package has an absolute import with the package name, you can find it in the tsconfig.json paths section. for example, paths inside website can be imported from website. notice these paths also need to include the src directory.
-
-this is preferable to other aliases like @/ because i can easily move the code from one package to another without changing the import paths. this way you can even move a file and import paths do not change much.
-
-always specify the type when creating arrays, especially for empty arrays. if you don't, typescript will infer the type as `never[]`, which can cause type errors when adding elements later.
-
-**Example:**
-
-```ts
-// BAD: Type will be never[]
-const items = [];
-
-// GOOD: Specify the expected type
-const items: string[] = [];
-const numbers: number[] = [];
-const users: User[] = [];
-```
-
-remember to always add the explicit type to avoid unexpected type inference.
-
-- when using nodejs APIs like fs always import the module and not the named exports. I prefer hacing nodejs APIs accessed on the module namspace like fs, os, path, etc.
-
-DO `import fs from 'fs'; fs.writeFileSync(...)`
-DO NOT `import { writeFileSync } from 'fs';`
-
-# package manager: pnpm with workspace
-
-this project uses pnpm workspaces to manage dependencies. important scripts are in the root package.json or various packages' package.json
-
-try to run commands inside the package folder that you are working on. for example you should never run `pnpm test` from the root
-
-if you need to install packages always use pnpm
-
-instead of adding packages directly in package.json use `pnpm install package` inside the right workspace folder. NEVER manually add a package by updating package.json
-
-## updating a package
-
-when i ask you to update a package always run `pnpm update -r packagename`. to update to latest also add --latest
-
-Do not do `pnpm add packagename` to update a package. only to add a missing one. otherwise other packages versions will get out of sync.
-
-## fixing duplicate pnpm dependencies
-
-sometimes typescript will fail if there are 2 duplicate packages in the workspace node_modules. this can happen in pnpm if a package is used in 2 different places (even if inside a node_module package, transitive dependency) with a different set of versions for a peer dependency
-
-for example if better-auth depends on zod peer dep and zod is in different versions in 2 dependency subtrees
-
-to identify if a pnpm package is duplicated, search for the string " packagename@" inside `pnpm-lock.yaml`, notice the space in the search string. then if the result returns multiple instances with a different set of peer deps inside the round brackets, it means that this package is being duplicated. here is an example of a package getting duplicated:
-
-```
-
-  better-auth@1.3.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76):
-    dependencies:
-      '@better-auth/utils': 0.2.6
-      '@better-fetch/fetch': 1.1.18
-      '@noble/ciphers': 0.6.0
-      '@noble/hashes': 1.8.0
-      '@simplewebauthn/browser': 13.1.2
-      '@simplewebauthn/server': 13.1.2
-      better-call: 1.0.13
-      defu: 6.1.4
-      jose: 5.10.0
-      kysely: 0.28.5
-      nanostores: 0.11.4
-      zod: 3.25.76
-    optionalDependencies:
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
-
-  better-auth@1.3.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@4.0.17):
-    dependencies:
-      '@better-auth/utils': 0.2.6
-      '@better-fetch/fetch': 1.1.18
-      '@noble/ciphers': 0.6.0
-      '@noble/hashes': 1.8.0
-      '@simplewebauthn/browser': 13.1.2
-      '@simplewebauthn/server': 13.1.2
-      better-call: 1.0.13
-      defu: 6.1.4
-      jose: 5.10.0
-      kysely: 0.28.5
-      nanostores: 0.11.4
-      zod: 4.0.17
-    optionalDependencies:
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
-
-```
-
-as you can see, better-auth is listed twice with different sets of peer deps. in this case it's because of zod being in version 3 and 4 in two subtrees of our workspace dependencies.
-
-as a first step, try running `pnpm dedupe better-auth` with your package name and see if there is still the problem.
-
-below i will describe how to generally deduplicate a package. i will use zod as an example. it works with any dependency found in the previous step.
-
-to deduplicate the package, we have to make sure we only have 1 version of zod installed in your workspace. DO NOT use overrides for this. instead, fix the problem by manually updating the dependencies that are forcing the older version of zod in the dependency tree.
-
-to do so, we first have to run the command `pnpm -r why zod@3.25.76` to see the reason the older zod version is installed. in this case, the result is something like this:
-
-```
-
-website /Users/morse/Documents/GitHub/holocron/website (PRIVATE)
-
-dependencies:
-@better-auth/stripe 1.2.10
-├─┬ better-auth 1.3.6
-│ └── zod 3.25.76 peer
-└── zod 3.25.76
-db link:../db
-└─┬ docs-website link:../docs-website
-  ├─┬ fumadocs-docgen 2.0.1
-  │ └── zod 3.25.76
-  ├─┬ fumadocs-openapi link:../fumadocs/packages/openapi
-  │ └─┬ @modelcontextprotocol/sdk 1.17.3
-  │   ├── zod 3.25.76
-  │   └─┬ zod-to-json-schema 3.24.6
-  │     └── zod 3.25.76 peer
-  └─┬ searchapi link:../searchapi
-    └─┬ agents 0.0.109
-      ├─┬ @modelcontextprotocol/sdk 1.17.3
-      │ ├── zod 3.25.76
-      │ └─┬ zod-to-json-schema 3.24.6
-      │   └── zod 3.25.76 peer
-      └─┬ ai 4.3.19
-        ├─┬ @ai-sdk/provider-utils 2.2.8
-        │ └── zod 3.25.76 peer
-        └─┬ @ai-sdk/react 1.2.12
-          ├─┬ @ai-sdk/provider-utils 2.2.8
-          │ └── zod 3.25.76 peer
-          └─┬ @ai-sdk/ui-utils 1.2.11
-            └─┬ @ai-sdk/provider-utils 2.2.8
-              └── zod 3.25.76 peer
-```
-
-here we can see zod 3 is installed because of @modelcontextprotocol/sdk, @better-auth/stripe and agents packages. to fix the problem, we can run
-
-```
-pnpm update -r --latest  @modelcontextprotocol/sdk @better-auth/stripe agents
-```
-
-this way, if these packages include the newer version of the dependency, zod will be deduplicated automatically.
-
-in this case, we could have only updated @better-auth/stripe to fix the issue too, that's because @better-auth/stripe is the one that has better-auth as a peer dep. but finding what is the exact problematic package is difficult, so it is easier to just update all packages you notice that we depend on directly in our workspace package.json files.
-
-if after doing this we still have duplicate packages, you will have to ask the user for help. you can try deleting the node_modules and restarting the approach, but it rarely helps.
-
-# testing
-
-.toMatchInlineSnapshot is the preferred way to write tests. leave them empty the first time, update them with -u. check git diff for the test file every time you update them with -u
-
-never use timeouts longer than 5 seconds for expects and other statements timeouts. increase timeouts for tests if required, up to 1 minute
-
-do not create dumb tests that test nothing. do not write tests if there is not already a test file or describe block for that function or module.
-
-if the inputs for the tests is an array of repetitive fields and long content, generate this input data programmatically instead of hardcoding everything. only hardcode the important parts and generate other repetitive fields in a .map or .reduce
-
-tests should validate complex and non-obvious logic. if a test looks like a placeholder, do not add it.
-
-use vitest or bun test to run tests. tests should be run from the current package directory and not root. try using the test script instead of vitest directly. additional vitest flags can be added at the end, like --run to disable watch mode or -u to update snapshots.
-
-to understand how the code you are writing works, you should add inline snapshots in the test files with expect().toMatchInlineSnapshot(), then run the test with `pnpm test -u --run` or `pnpm vitest -u --run` to update the snapshot in the file, then read the file again to inspect the result. if the result is not expected, update the code and repeat until the snapshot matches your expectations. never write the inline snapshots in test files yourself. just leave them empty and run `pnpm test -u --run` to update them.
-
-> always call `pnpm vitest` or `pnpm test` with `--run` or they will hang forever waiting for changes!
-> ALWAYS read back the test if you use the `-u` option to make sure the inline snapshots are as you expect.
-
-- NEVER write the snapshots content yourself in `toMatchInlineSnapshot`. instead leave it as is and call `pnpm test -u` to fill in snapshots content. the first time you call `toMatchInlineSnapshot()` you can leave it empty
-
-- when updating implementation and `toMatchInlineSnapshot` should change, DO NOT remove the inline snapshots yourself, just run `pnpm test -u` instead! This will replace contents of the snapshots without wasting time doing it yourself.
-
-- for very long snapshots you should use `toMatchFileSnapshot(filename)` instead of `toMatchInlineSnapshot()`. put the snapshot files in a snapshots/ directory and use the appropriate extension for the file based on the content
-
-never test client react components. only React and browser independent code. 
-
-most tests should be simple calls to functions with some expect calls, no mocks. test files should be called the same as the file where the tested function is being exported from.
-
-NEVER use mocks. the database does not need to be mocked, just use it. simply do not test functions that mutate the database if not asked.
-
-tests should strive to be as simple as possible. the best test is a simple `.toMatchInlineSnapshot()` call. these can be easily evaluated by reading the test file after the run passing the -u option. you can clearly see from the inline snapshot if the function behaves as expected or not.
-
-try to use only describe and test in your tests. do not use beforeAll, before, etc if not strictly required.
-
-NEVER write tests for react components or react hooks. NEVER write tests for react components. you will be fired if you do.
-
-sometimes tests work directly on database data, using prisma. to run these tests you have to use the package.json script, which will call `doppler run -- vitest` or similar. never run doppler cli yourself as you could delete or update production data. tests generally use a staging database instead.
-
-never write tests yourself that call prisma or interact with database or emails. for these, ask the user to write them for you.
-
-changelogs.md
-# writing docs
-
-when generating a .md or .mdx file to document things, always add a frontmatter with title and description. also add a prompt field with the exact prompt used to generate the doc. use @ to reference files and urls and provide any context necessary to be able to recreate this file from scratch using a model. if you used urls also reference them. reference all files you had to read to create the doc. use yaml | syntax to add this prompt and never go over the column width of 80
-# github
-
-
-you can use the `gh` cli to do operations on github for the current repository. For example: open issues, open PRs, check actions status, read workflow logs, etc.
-
-## creating issues and pull requests
-
-when opening issues and pull requests with gh cli, never use markdown headings or sections. instead just use simple paragraphs, lists and code examples. be as short as possible while remaining clear and using good English.
-
-example:
+### Extension
 
 ```bash
-gh issue create --title "Fix login timeout" --body "The login form times out after 5 seconds on slow connections. This affects users on mobile networks.
-
-Steps to reproduce:
-1. Open login page on 3G connection
-2. Enter credentials
-3. Click submit
-
-Expected: Login completes within 30 seconds
-Actual: Request times out after 5 seconds
-
-Error in console:
-\`\`\`bash
-Error: Request timeout at /api/auth/login
-\`\`\`"
+cd extension && pnpm build
 ```
 
-## get current github repo
+Load `extension/dist` in Chrome via `chrome://extensions` (developer mode).
 
-`git config --get remote.origin.url`
-
-## checking status of latest github actions workflow run
+### Worker
 
 ```bash
-gh run list # lists latest actions runs
-gh run watch <id> --exit-status # if workflow is in progress, wait for the run to complete. the actions run is finished when this command exits. Set a tiemout of at least 10 minutes when running this command
-gh pr checks --watch --fail-fast # watch for current branch pr ci checks to finish
-gh run view <id> --log-failed | tail -n 300 # read the logs for failed steps in the actions run
-gh run view <id> --log | tail -n 300 # read all logs for a github actions run
+cd rebrow && pnpm dev
 ```
 
-## responding to PR reviews and comments (gh-pr-review extension)
+Starts local worker at `localhost:8787`.
+
+### Testing
+
+Configure extension with `http://localhost:8787/room/test` and connect a tab.
+
+## Key Files
+
+- `rebrow/src/relay.ts` - Durable Object that relays CDP between extension and Playwright
+- `rebrow/src/mcp-server.ts` - MCP server with `execute` tool that runs Playwright code
+- `rebrow/src/index.ts` - Worker entry point, routes to DO or MCP
+- `extension/src/background.ts` - Service worker, handles CDP via chrome.debugger API
+- `extension/src/popup.ts` - Settings popup for configuring relay URL
+
+## CDP Flow
+
+1. Agent calls `execute` tool with Playwright code
+2. Worker spawns Sandbox container with playwright-core
+3. Sandbox connects to relay via WebSocket (`/room/:roomId/mcp/:clientId`)
+4. Playwright sends CDP commands through relay to extension
+5. Extension forwards to chrome.debugger API
+6. Responses flow back through relay to Playwright
+7. Result returned to agent
+
+## CDP Docs
 
 ```bash
-# view reviews and get thread IDs
-gh pr-review review view 42 -R owner/repo --unresolved
-
-# reply to a review comment
-gh pr-review comments reply 42 -R owner/repo \
-  --thread-id PRRT_kwDOAAABbcdEFG12 \
-  --body "Fixed in latest commit"
-
-# resolve a thread
-gh pr-review threads resolve 42 -R owner/repo --thread-id PRRT_kwDOAAABbcdEFG12
+curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Target.pdl
+curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Browser.pdl
+curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Page.pdl
+curl -sL https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/Emulation.pdl
 ```
 
-## listing, searching, reading github repos files with gitchamber
+## Guidelines
 
-you MUST use gitchamber.com to read repo files. first ALWAYS run `curl https://gitchamber.com` to read detailed usage docs. always use curl to fetch the responses of gitchamber.com
-
-for example when working with the vercel ai sdk, you can fetch the latest docs using:
-
-https://gitchamber.com/repos/facebook/react/main/files
-
-https://gitchamber.com/repos/remorses/fumabase/main/files?glob=**/*.ts
-
-https://gitchamber.com/repos/facebook/react/main/files/README.md?start=10&end=50
-
-https://gitchamber.com/repos/facebook/react/main/search/useState
-
-gitchamber allows you to list, search and read files in a repo. you MUST use it over alternatives likes raw.github.com, because 
-- it allows you to use context usage better via limit and offset pagination
-- it can list files, even filtering by a specific glob (default is *.md and *.mdx)
-- it can search a repo for a specific substring
-- it can show the code with line numbers for each line, letting you find a specific line number
-
-# playwright
-
-you can control the browser using the playwright mcp tools. these tools let you control the browser to get information or accomplish actions
-
-if i ask you to test something in the browser, know that the website dev server is already running at http://localhost:7664 for website and :7777 for docs-website (but docs-website needs to use the website domain specifically, for example name-hash.localhost:7777)
-
-## playwright source code
-
-the playwright source code is cloned at `./tmp/playwright` (gitignored). use Task agents to explore it when you need to understand how playwright implements CDP commands, page discovery, browser connection, etc. key files:
-
-- `packages/playwright-core/src/server/chromium/` - chromium-specific CDP implementation
-- `packages/playwright-core/src/server/chromium/crConnection.ts` - CDP websocket connection
-- `packages/playwright-core/src/server/chromium/crBrowser.ts` - browser and page discovery
-- `packages/playwright-core/src/server/chromium/chromium.ts` - connectOverCDP implementation
-- `packages/playwright-core/src/server/frames.ts` - frame and context management
-
-read `docs/playwright-cdp-connection.md` for a detailed breakdown of what CDP commands/events playwright sends and expects when connecting via CDP. this doc explains the full connection sequence, context promises, and what must happen before user code can run.
-
-# zod
-
-when you need to create a complex type that comes from a prisma table, do not create a new schema that tries to recreate the prisma table structure. instead just use `z.any() as ZodType<PrismaTable>)` to get type safety but leave any in the schema. this gets most of the benefits of zod without having to define a new zod schema that can easily go out of sync.
-
-## converting zod schema to jsonschema
-
-you MUST use the built in zod v4 toJSONSchema and not the npm package `zod-to-json-schema` which is outdated and does not support zod v4.
-
-```ts
-import { toJSONSchema } from "zod";
-
-const mySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(3).max(100),
-  age: z.number().min(0).optional(),
-});
-
-const jsonSchema = toJSONSchema(mySchema, {
-  removeAdditionalStrategy: "strict",
-});
-```
-
-github.md
+- Never use `console.log` in MCP code - use `console.error` for debugging
+- Room ID acts as shared secret - recommend using UUIDs
+- Never call `browser.close()` in Playwright code - it's a relay, not owned browser
+- Breaking changes to WS protocol must be avoided - extension updates are not instant

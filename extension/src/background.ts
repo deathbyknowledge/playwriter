@@ -1,12 +1,68 @@
-declare const process: { env: { PLAYWRITER_PORT: string } }
-
 import { createStore } from 'zustand/vanilla'
-import type { ExtensionState, ConnectionState, TabState, TabInfo } from './types'
-import type { CDPEvent, Protocol } from 'playwriter/src/cdp-types'
-import type { ExtensionCommandMessage, ExtensionResponseMessage } from 'playwriter/src/protocol'
+import type {
+  ExtensionState,
+  ConnectionState,
+  TabState,
+  TabInfo,
+  CDPEvent,
+  Protocol,
+  ExtensionCommandMessage,
+  ExtensionResponseMessage,
+} from './types'
 
-const RELAY_PORT = process.env.PLAYWRITER_PORT
-const RELAY_URL = `ws://localhost:${RELAY_PORT}/extension`
+// Relay settings type - matches popup.ts
+interface RelaySettings {
+  relayUrl: string
+}
+
+const DEFAULT_RELAY_SETTINGS: RelaySettings = {
+  relayUrl: '',
+}
+
+// Current relay settings (loaded from storage on init)
+let relaySettings: RelaySettings = { ...DEFAULT_RELAY_SETTINGS }
+
+async function loadRelaySettings(): Promise<RelaySettings> {
+  try {
+    const result = await chrome.storage.sync.get('relaySettings')
+    relaySettings = { ...DEFAULT_RELAY_SETTINGS, ...result.relaySettings }
+    return relaySettings
+  } catch {
+    return DEFAULT_RELAY_SETTINGS
+  }
+}
+
+function getRelayWsUrl(): string {
+  if (!relaySettings.relayUrl) {
+    throw new Error('No relay URL configured. Please set the Room URL in the extension popup.')
+  }
+  // Convert URL format: https://domain/room/roomId -> wss://domain/room/roomId/extension
+  let url = relaySettings.relayUrl
+  if (url.startsWith('https://')) {
+    url = 'wss://' + url.slice(8)
+  } else if (url.startsWith('http://')) {
+    url = 'ws://' + url.slice(7)
+  } else if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+    url = 'wss://' + url
+  }
+  url = url.replace(/\/$/, '')
+  return `${url}/extension`
+}
+
+function getRelayHttpUrl(): string {
+  if (!relaySettings.relayUrl) {
+    throw new Error('No relay URL configured')
+  }
+  let url = relaySettings.relayUrl
+  if (url.startsWith('wss://')) {
+    url = 'https://' + url.slice(6)
+  } else if (url.startsWith('ws://')) {
+    url = 'http://' + url.slice(5)
+  } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url
+  }
+  return url.replace(/\/$/, '')
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -43,13 +99,19 @@ class ConnectionManager {
   }
 
   private async connect(): Promise<void> {
-    logger.debug(`Waiting for server at http://localhost:${RELAY_PORT}...`)
+    // Load latest settings before connecting
+    await loadRelaySettings()
+
+    const httpUrl = getRelayHttpUrl()
+    const wsUrl = getRelayWsUrl()
+
+    logger.debug(`Waiting for server at ${httpUrl}...`)
 
     // Retry for up to 30 seconds with 1s intervals, then give up (maintain loop will retry later)
     const maxAttempts = 30
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        await fetch(`http://localhost:${RELAY_PORT}`, { method: 'HEAD', signal: AbortSignal.timeout(2000) })
+        await fetch(httpUrl, { method: 'HEAD', signal: AbortSignal.timeout(2000) })
         logger.debug('Server is available')
         break
       } catch {
@@ -63,8 +125,8 @@ class ConnectionManager {
       }
     }
 
-    logger.debug('Creating WebSocket connection to:', RELAY_URL)
-    const socket = new WebSocket(RELAY_URL)
+    logger.debug('Creating WebSocket connection to:', wsUrl)
+    const socket = new WebSocket(wsUrl)
 
     await new Promise<void>((resolve, reject) => {
       let timeoutFired = false
@@ -87,6 +149,7 @@ class ConnectionManager {
         logger.debug('WebSocket error during connection:', error)
         if (!timeoutFired) {
           clearTimeout(timeout)
+          // WebSocket to 409 response shows as generic error - check status endpoint
           reject(new Error('WebSocket connection failed'))
         }
       }
@@ -95,7 +158,13 @@ class ConnectionManager {
         logger.debug('WebSocket closed during connection:', { code: event.code, reason: event.reason })
         if (!timeoutFired) {
           clearTimeout(timeout)
-          reject(new Error(`WebSocket closed: ${event.reason || event.code}`))
+          // 409 from server comes through as close event with code 1006
+          // Check if it's because extension slot is taken
+          if (event.code === 1006) {
+            reject(new Error('Extension slot already taken'))
+          } else {
+            reject(new Error(`WebSocket closed: ${event.reason || event.code}`))
+          }
         }
       }
     })
@@ -187,7 +256,9 @@ class ConnectionManager {
       const mem = performance.memory
       if (mem) {
         const formatMB = (b: number) => (b / 1024 / 1024).toFixed(2) + 'MB'
-        logger.warn(`DISCONNECT MEMORY: used=${formatMB(mem.usedJSHeapSize)} total=${formatMB(mem.totalJSHeapSize)} limit=${formatMB(mem.jsHeapSizeLimit)}`)
+        logger.warn(
+          `DISCONNECT MEMORY: used=${formatMB(mem.usedJSHeapSize)} total=${formatMB(mem.totalJSHeapSize)} limit=${formatMB(mem.jsHeapSizeLimit)}`,
+        )
       }
     } catch {}
     logger.warn(`DISCONNECT: WS closed code=${code} reason=${reason || 'none'} stack=${getCallStack()}`)
@@ -236,7 +307,11 @@ class ConnectionManager {
       // When replaced by another extension, poll until slot is free
       if (store.getState().connectionState === 'extension-replaced') {
         try {
-          const response = await fetch(`http://localhost:${RELAY_PORT}/extension/status`, { method: 'GET', signal: AbortSignal.timeout(2000) })
+          const httpUrl = getRelayHttpUrl()
+          const response = await fetch(`${httpUrl}/extension/status`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(2000),
+          })
           const data = await response.json()
           if (!data.connected) {
             store.setState({ connectionState: 'idle', errorText: undefined })
@@ -251,26 +326,26 @@ class ConnectionManager {
         continue
       }
 
-    // Ensure tabs are in 'connecting' state when WS is not connected
-    // This handles edge cases where handleClose wasn't called or state got out of sync
-    const currentTabs = store.getState().tabs
-    const hasConnectedTabs = Array.from(currentTabs.values()).some((t) => t.state === 'connected')
-    if (hasConnectedTabs) {
-      store.setState((state) => {
-        const newTabs = new Map(state.tabs)
-        for (const [tabId, tab] of newTabs) {
-          if (tab.state === 'connected') {
-            newTabs.set(tabId, { ...tab, state: 'connecting' })
+      // Ensure tabs are in 'connecting' state when WS is not connected
+      // This handles edge cases where handleClose wasn't called or state got out of sync
+      const currentTabs = store.getState().tabs
+      const hasConnectedTabs = Array.from(currentTabs.values()).some((t) => t.state === 'connected')
+      if (hasConnectedTabs) {
+        store.setState((state) => {
+          const newTabs = new Map(state.tabs)
+          for (const [tabId, tab] of newTabs) {
+            if (tab.state === 'connected') {
+              newTabs.set(tabId, { ...tab, state: 'connecting' })
+            }
           }
-        }
-        return { tabs: newTabs }
-      })
-    }
+          return { tabs: newTabs }
+        })
+      }
 
-    // Try to connect silently in background - don't show 'connecting' badge
-    // Individual tab states will show 'connecting' when user explicitly clicks
-    try {
-      await this.ensureConnection()
+      // Try to connect silently in background - don't show 'connecting' badge
+      // Individual tab states will show 'connecting' when user explicitly clicks
+      try {
+        await this.ensureConnection()
         store.setState({ connectionState: 'connected' })
 
         // Re-attach any tabs that were in 'connecting' state (from a previous disconnect)
@@ -561,7 +636,7 @@ async function handleCommand(msg: ExtensionCommandMessage): Promise<any> {
     }
 
     case 'Target.createTarget': {
-      const url = msg.params.params?.url || 'about:blank'
+      const url = (msg.params.params?.url as string) || 'about:blank'
       logger.debug('Creating new tab with URL:', url)
       const tab = await chrome.tabs.create({ url, active: false })
       if (!tab.id) throw new Error('Failed to create tab')
@@ -677,7 +752,10 @@ type AttachTabResult = {
   sessionId: string
 }
 
-async function attachTab(tabId: number, { skipAttachedEvent = false }: { skipAttachedEvent?: boolean } = {}): Promise<AttachTabResult> {
+async function attachTab(
+  tabId: number,
+  { skipAttachedEvent = false }: { skipAttachedEvent?: boolean } = {},
+): Promise<AttachTabResult> {
   const debuggee = { tabId }
   let debuggerAttached = false
 
@@ -706,7 +784,12 @@ async function attachTab(tabId: number, { skipAttachedEvent = false }: { skipAtt
 
     // Log error if URL is empty - this causes Playwright to create broken pages
     if (!targetInfo.url || targetInfo.url === '' || targetInfo.url === ':') {
-      logger.error('WARNING: Target.attachedToTarget will be sent with empty URL! tabId:', tabId, 'targetInfo:', JSON.stringify(targetInfo))
+      logger.error(
+        'WARNING: Target.attachedToTarget will be sent with empty URL! tabId:',
+        tabId,
+        'targetInfo:',
+        JSON.stringify(targetInfo),
+      )
     }
 
     const attachOrder = nextSessionId
@@ -737,7 +820,18 @@ async function attachTab(tabId: number, { skipAttachedEvent = false }: { skipAtt
       })
     }
 
-    logger.debug('Tab attached successfully:', tabId, 'sessionId:', sessionId, 'targetId:', targetInfo.targetId, 'url:', targetInfo.url, 'skipAttachedEvent:', skipAttachedEvent)
+    logger.debug(
+      'Tab attached successfully:',
+      tabId,
+      'sessionId:',
+      sessionId,
+      'targetId:',
+      targetInfo.targetId,
+      'url:',
+      targetInfo.url,
+      'skipAttachedEvent:',
+      skipAttachedEvent,
+    )
     return { targetInfo, sessionId }
   } catch (error) {
     // Clean up debugger if we attached but failed later
@@ -790,8 +884,6 @@ function detachTab(tabId: number, shouldDetachDebugger: boolean): void {
   }
 }
 
-
-
 async function connectTab(tabId: number): Promise<void> {
   try {
     logger.debug(`Starting connection to tab ${tabId}`)
@@ -818,7 +910,14 @@ async function connectTab(tabId: number): Promise<void> {
       error.message === 'Connection replaced by another extension' ||
       error.message.startsWith('WebSocket')
 
-    if (isWsError) {
+    // Extension slot already taken by another instance - enter replaced state
+    if (error.message === 'Extension slot already taken') {
+      logger.debug('Extension slot taken, entering extension-replaced state')
+      store.setState({
+        connectionState: 'extension-replaced',
+        errorText: 'Extension slot already taken by another instance',
+      })
+    } else if (isWsError) {
       logger.debug(`WS connection failed, keeping tab ${tabId} in connecting state for retry`)
       // Tab stays in 'connecting' state - maintainLoop will retry when WS becomes available
     } else {
@@ -894,7 +993,14 @@ async function resetDebugger(): Promise<void> {
 // We can't distinguish them without the `tabs` permission, so we just let attachment fail.
 function isRestrictedUrl(url: string | undefined): boolean {
   if (!url) return false
-  const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'devtools://', 'edge://', 'https://chrome.google.com/', 'https://chromewebstore.google.com/']
+  const restrictedPrefixes = [
+    'chrome://',
+    'chrome-extension://',
+    'devtools://',
+    'edge://',
+    'https://chrome.google.com/',
+    'https://chromewebstore.google.com/',
+  ]
   return restrictedPrefixes.some((prefix) => url.startsWith(prefix))
 }
 
@@ -1064,14 +1170,17 @@ async function onActionClicked(tab: chrome.tabs.Tab): Promise<void> {
 resetDebugger()
 connectionManager.maintainLoop()
 
-chrome.contextMenus.remove('playwriter-pin-element').catch(() => {}).finally(() => {
-  chrome.contextMenus.create({
-    id: 'playwriter-pin-element',
-    title: 'Copy Playwriter Element Reference',
-    contexts: ['all'],
-    visible: false,
+chrome.contextMenus
+  .remove('playwriter-pin-element')
+  .catch(() => {})
+  .finally(() => {
+    chrome.contextMenus.create({
+      id: 'playwriter-pin-element',
+      title: 'Copy Playwriter Element Reference',
+      contexts: ['all'],
+      visible: false,
+    })
   })
-})
 
 function updateContextMenuVisibility(): void {
   const { currentTabId, tabs } = store.getState()
@@ -1102,7 +1211,10 @@ store.subscribe((state, prevState) => {
   }
 })
 
-logger.debug(`Using relay URL: ${RELAY_URL}`)
+// Log initial relay settings
+loadRelaySettings().then(() => {
+  logger.debug(`Using relay URL: ${getRelayWsUrl()}`)
+})
 
 // Memory monitoring - helps debug service worker termination issues
 let lastMemoryUsage = 0
@@ -1131,11 +1243,17 @@ function checkMemory(): void {
 
     // Log if memory is high or growing rapidly
     if (used > MEMORY_CRITICAL_THRESHOLD) {
-      logger.error(`MEMORY CRITICAL: used=${formatMB(used)} total=${formatMB(total)} limit=${formatMB(limit)} growth=${formatMB(memoryDelta)} rate=${formatMB(growthRate)}/s`)
+      logger.error(
+        `MEMORY CRITICAL: used=${formatMB(used)} total=${formatMB(total)} limit=${formatMB(limit)} growth=${formatMB(memoryDelta)} rate=${formatMB(growthRate)}/s`,
+      )
     } else if (used > MEMORY_WARNING_THRESHOLD) {
-      logger.warn(`MEMORY WARNING: used=${formatMB(used)} total=${formatMB(total)} limit=${formatMB(limit)} growth=${formatMB(memoryDelta)} rate=${formatMB(growthRate)}/s`)
+      logger.warn(
+        `MEMORY WARNING: used=${formatMB(used)} total=${formatMB(total)} limit=${formatMB(limit)} growth=${formatMB(memoryDelta)} rate=${formatMB(growthRate)}/s`,
+      )
     } else if (memoryDelta > MEMORY_GROWTH_THRESHOLD && timeDelta < 60000) {
-      logger.warn(`MEMORY SPIKE: grew ${formatMB(memoryDelta)} in ${(timeDelta / 1000).toFixed(1)}s (used=${formatMB(used)})`)
+      logger.warn(
+        `MEMORY SPIKE: grew ${formatMB(memoryDelta)} in ${(timeDelta / 1000).toFixed(1)}s (used=${formatMB(used)})`,
+      )
     }
 
     lastMemoryUsage = used
@@ -1158,31 +1276,33 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   void updateIcons()
   if (changeInfo.groupId !== undefined) {
     // Queue tab group operations to serialize with syncTabGroup and disconnectEverything
-    tabGroupQueue = tabGroupQueue.then(async () => {
-      // Query for playwriter group by title - no stale cached ID
-      const existingGroups = await chrome.tabGroups.query({ title: 'playwriter' })
-      const groupId = existingGroups[0]?.id
-      if (groupId === undefined) {
-        return
-      }
-      const { tabs } = store.getState()
-      if (changeInfo.groupId === groupId) {
-        if (!tabs.has(tabId) && !isRestrictedUrl(tab.url)) {
-          logger.debug('Tab manually added to playwriter group:', tabId)
-          await connectTab(tabId)
-        }
-      } else if (tabs.has(tabId)) {
-        const tabInfo = tabs.get(tabId)
-        if (tabInfo?.state === 'connecting') {
-          logger.debug('Tab removed from group while connecting, ignoring:', tabId)
+    tabGroupQueue = tabGroupQueue
+      .then(async () => {
+        // Query for playwriter group by title - no stale cached ID
+        const existingGroups = await chrome.tabGroups.query({ title: 'playwriter' })
+        const groupId = existingGroups[0]?.id
+        if (groupId === undefined) {
           return
         }
-        logger.debug('Tab manually removed from playwriter group:', tabId)
-        await disconnectTab(tabId)
-      }
-    }).catch((e) => {
-      logger.debug('onTabUpdated handler error:', e)
-    })
+        const { tabs } = store.getState()
+        if (changeInfo.groupId === groupId) {
+          if (!tabs.has(tabId) && !isRestrictedUrl(tab.url)) {
+            logger.debug('Tab manually added to playwriter group:', tabId)
+            await connectTab(tabId)
+          }
+        } else if (tabs.has(tabId)) {
+          const tabInfo = tabs.get(tabId)
+          if (tabInfo?.state === 'connecting') {
+            logger.debug('Tab removed from group while connecting, ignoring:', tabId)
+            return
+          }
+          logger.debug('Tab manually removed from playwriter group:', tabId)
+          await disconnectTab(tabId)
+        }
+      })
+      .catch((e) => {
+        logger.debug('onTabUpdated handler error:', e)
+      })
   }
 })
 
@@ -1259,3 +1379,46 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 // Sync icons on first load
 void updateIcons()
+
+// Handle messages from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'getState') {
+    const state = store.getState()
+    // Convert Map to array for serialization
+    const tabsArray = Array.from(state.tabs.entries())
+    sendResponse({
+      connectionState: state.connectionState,
+      tabs: Object.fromEntries(tabsArray),
+      currentTabId: state.currentTabId,
+    })
+    return true
+  }
+
+  if (message.type === 'toggleTab') {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
+      const tab = tabs[0]
+      if (tab?.id) {
+        await onActionClicked(tab)
+        sendResponse({ success: true })
+      } else {
+        sendResponse({ success: false, error: 'No active tab' })
+      }
+    })
+    return true
+  }
+
+  if (message.type === 'settingsChanged') {
+    const newSettings = message.settings as RelaySettings
+    relaySettings = newSettings
+    logger.debug('Settings changed:', newSettings)
+
+    // Disconnect and reconnect with new settings
+    if (connectionManager.ws?.readyState === WebSocket.OPEN) {
+      connectionManager.ws.close(1000, 'Settings changed')
+    }
+    sendResponse({ success: true })
+    return true
+  }
+
+  return false
+})
