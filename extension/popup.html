@@ -30,7 +30,8 @@
         font-size: 12px;
         color: #999;
       }
-      input[type='text'] {
+      input[type='text'],
+      input[type='password'] {
         width: 100%;
         padding: 8px 10px;
         border: 1px solid #333;
@@ -40,10 +41,12 @@
         color: #e0e0e0;
         outline: none;
       }
-      input[type='text']:focus {
+      input[type='text']:focus,
+      input[type='password']:focus {
         border-color: #22c55e;
       }
-      input[type='text']::placeholder {
+      input[type='text']::placeholder,
+      input[type='password']::placeholder {
         color: #666;
       }
       .btn-row {
@@ -147,6 +150,12 @@
       <label>Room URL</label>
       <input type="text" id="relay-url" placeholder="https://rebrow.example.com/room/my-room" />
       <div class="hint">Your rebrow relay URL with room ID</div>
+    </div>
+
+    <div class="section">
+      <label>Passphrase</label>
+      <input type="password" id="passphrase" placeholder="Enter passphrase" />
+      <div class="hint">Shared secret for authentication</div>
     </div>
 
     <div class="btn-row">

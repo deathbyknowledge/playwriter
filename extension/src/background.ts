@@ -13,10 +13,12 @@ import type {
 // Relay settings type - matches popup.ts
 interface RelaySettings {
   relayUrl: string
+  passphrase: string
 }
 
 const DEFAULT_RELAY_SETTINGS: RelaySettings = {
   relayUrl: '',
+  passphrase: '',
 }
 
 // Current relay settings (loaded from storage on init)
@@ -36,7 +38,11 @@ function getRelayWsUrl(): string {
   if (!relaySettings.relayUrl) {
     throw new Error('No relay URL configured. Please set the Room URL in the extension popup.')
   }
-  // Convert URL format: https://domain/room/roomId -> wss://domain/room/roomId/extension
+  if (!relaySettings.passphrase) {
+    throw new Error('No passphrase configured. Please set the Passphrase in the extension popup.')
+  }
+
+  // Convert URL format: https://domain/room/roomId -> wss://domain/room/roomId/extension?passphrase=xxx
   let url = relaySettings.relayUrl
   if (url.startsWith('https://')) {
     url = 'wss://' + url.slice(8)
@@ -45,8 +51,10 @@ function getRelayWsUrl(): string {
   } else if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
     url = 'wss://' + url
   }
+
+  // Clean up URL and add passphrase
   url = url.replace(/\/$/, '')
-  return `${url}/extension`
+  return `${url}/extension?passphrase=${encodeURIComponent(relaySettings.passphrase)}`
 }
 
 function getRelayHttpUrl(): string {

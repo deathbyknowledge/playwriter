@@ -1,27 +1,27 @@
-# Rebrow
+# Personal Compute Relay
 
-Remote browser control via Cloudflare Workers. Let AI agents control your Chrome browser from anywhere.
+Give cloud AI agents secure access to your personal compute resources - your browser and your local machine.
 
-## How it works
+## What is it?
 
-1. **Chrome Extension** connects to a Cloudflare Worker relay
-2. **AI Agent** connects to the same relay via MCP
-3. Agent can see the page (accessibility snapshots, screenshots) and interact (click, type, navigate)
+Personal Compute Relay bridges the gap between cloud-hosted AI agents and your local environment. Instead of running agents locally (which requires powerful hardware), you can run them in the cloud while they securely interact with:
+
+- **Your Browser** - Control Chrome tabs, fill forms, navigate sites, take screenshots
+- **Your Local Machine** - Read/write files, run bash commands, execute builds
 
 ```
-Your Browser                    Cloudflare                      AI Agent
-    |                               |                               |
-    |  Extension connects to        |                               |
-    |  wss://relay/room/xyz  -----> |                               |
-    |                               | <----- Agent connects via MCP |
-    |                               |        /room/xyz/mcp-server   |
-    |  CDP commands/events <------> |  <---->  execute tool calls   |
-    |                               |                               |
+┌─────────────────────┐         ┌──────────────────────┐         ┌─────────────────┐
+│  Cloud AI Agent     │◄───────►│  Cloudflare Worker   │◄───────►│  Your Machine   │
+│  (Claude, GPT, etc) │   MCP   │  (Relay)             │   WS    │                 │
+│                     │         │                      │         │  - Browser tabs │
+│                     │         │  - Auth              │         │  - Files        │
+│                     │         │  - Route commands    │         │  - Shell        │
+└─────────────────────┘         └──────────────────────┘         └─────────────────┘
 ```
 
-## Setup
+## Quick Start
 
-### 1. Deploy the Worker
+### 1. Deploy the Relay
 
 ```bash
 cd rebrow
@@ -29,84 +29,129 @@ pnpm install
 pnpm deploy
 ```
 
-Note the deployed URL (e.g., `https://rebrow.your-subdomain.workers.dev`).
+Note your deployed URL (e.g., `https://rebrow.your-subdomain.workers.dev`).
 
-### 2. Install the Extension
+### 2. Connect Your Browser (Optional)
 
-Load the extension in Chrome:
+Build and install the Chrome extension:
+
+```bash
+cd extension
+pnpm install && pnpm build
+```
 
 1. Go to `chrome://extensions`
 2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `extension/dist` folder
+3. Click "Load unpacked" → select `extension/dist`
+4. Click the extension icon
+5. Enter Room URL: `https://rebrow.your-subdomain.workers.dev/room/my-room`
+6. Enter Passphrase: `your-secret-passphrase`
+7. Click **Save**, then **Connect Tab**
 
-### 3. Connect a Tab
+### 3. Connect Your Local Machine (Optional)
 
-1. Click the Rebrow extension icon
-2. Enter your relay URL with a room ID: `https://rebrow.your-subdomain.workers.dev/room/my-room`
-3. Click **Save**
-4. Click **Connect Tab** on any tab you want to control
+```bash
+cd local-client
+pnpm install && pnpm build
+node dist/cli.js https://rebrow.your-subdomain.workers.dev/room/my-room your-secret-passphrase
+```
 
 ### 4. Configure Your AI Agent
 
-Add the MCP server to your agent config (e.g., Claude Desktop):
+Add to your MCP client config (e.g., Claude Desktop `claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
-    "rebrow": {
-      "url": "https://rebrow.your-subdomain.workers.dev/room/my-room/mcp-server"
+    "personal-compute": {
+      "url": "https://rebrow.your-subdomain.workers.dev/room/my-room/mcp-server",
+      "headers": {
+        "Authorization": "Bearer your-secret-passphrase"
+      }
     }
   }
 }
 ```
 
-The room ID (`my-room`) acts as a shared secret - use a random UUID for security.
+## Available Tools
 
-## What Can the Agent Do?
+### Browser Control (requires extension)
 
-The agent has a single `execute` tool that runs Playwright code:
+**`execute`** - Run Playwright code in your browser
 
 ```javascript
-// See what's on the page
+// See the page structure
 console.log(await accessibilitySnapshot({ page }))
 
-// Click an element
+// Click elements
 await page.locator('aria-ref=e13').click()
 
-// Fill a form
+// Fill forms
 await page.locator('aria-ref=e25').fill('hello@example.com')
 
 // Navigate
 await page.goto('https://example.com')
 
-// Take a screenshot with labels
+// Screenshot with labels
 await screenshotWithAccessibilityLabels({ page })
 ```
 
+### Local Machine (requires local-client)
+
+**`read_file`** - Read files from your machine
+
+```json
+{ "path": "/Users/me/project/src/index.ts" }
+```
+
+**`write_file`** - Write files (must read first to prevent conflicts)
+
+```json
+{ "path": "/Users/me/project/src/index.ts", "content": "..." }
+```
+
+**`bash`** - Execute shell commands
+
+```json
+{ "command": "npm test", "workdir": "/Users/me/project" }
+```
+
+## Security
+
+- **Passphrase authentication** - First connection sets the passphrase, subsequent must match
+- **Room isolation** - Each room is completely isolated
+- **No data storage** - Relay only passes through commands, stores nothing
+- **You control access** - Only what you connect is accessible
+
 ## Use Cases
 
-- **Accessibility assistance** - Help users with motor impairments control their browser via voice/chat
-- **Remote automation** - Run browser tasks from anywhere
-- **AI browser agents** - Let Claude, GPT, or local models browse the web
+- **Remote development** - Code from anywhere with cloud AI assistance
+- **Browser automation** - Let AI handle repetitive web tasks
+- **Accessibility** - Voice/chat control of browser for motor-impaired users
+- **AI agents** - Give Claude, GPT, or local models access to real compute
+
+## Architecture
+
+- **`rebrow/`** - Cloudflare Worker + Durable Objects relay
+- **`extension/`** - Chrome extension for browser control
+- **`local-client/`** - Node.js CLI for local machine access
 
 ## Development
 
 ```bash
 # Start the worker locally
-cd rebrow
-pnpm dev
+cd rebrow && pnpm dev
 
 # Build the extension
-cd extension
-pnpm build
+cd extension && pnpm build
+
+# Build local client
+cd local-client && pnpm build
+
+# Test locally
+# Extension: Room URL = http://localhost:8787/room/test, Passphrase = test
+# Local client: node dist/cli.js http://localhost:8787/room/test test
 ```
-
-For local development, the extension connects to `localhost:8787`.
-
-## Architecture
-
-- **`rebrow/`** - Cloudflare Worker with Durable Objects relay + Sandbox for Playwright execution
-- **`extension/`** - Chrome extension that connects browser tabs to the relay
 
 ## License
 

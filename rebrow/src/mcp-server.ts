@@ -582,10 +582,12 @@ export function createRebrowMcpServer({
   env,
   roomId,
   workerUrl,
+  passphrase,
 }: {
   env: Env
   roomId: string
   workerUrl: string
+  passphrase: string
 }): McpServer {
   const server = new McpServer({
     name: 'playwriter',
@@ -642,7 +644,7 @@ Examples:
         // Convert http(s):// to ws(s):// for WebSocket connection
         const wsProtocol = workerUrl.startsWith('https://') ? 'wss://' : 'ws://'
         const wsHost = workerUrl.replace(/^https?:\/\//, '')
-        const relayWsUrl = `${wsProtocol}${wsHost}/room/${roomId}/mcp/sandbox-${Date.now()}`
+        const relayWsUrl = `${wsProtocol}${wsHost}/room/${roomId}/mcp/sandbox-${Date.now()}?passphrase=${encodeURIComponent(passphrase)}`
 
         // Generate and write the execution script
         const script = generateExecutionScript({ code, relayWsUrl, timeout })
@@ -735,6 +737,130 @@ Examples:
         const errorMessage = error instanceof Error ? error.message : String(error)
         return {
           content: [{ type: 'text', text: `Reset failed: ${errorMessage}` }],
+          isError: true,
+        }
+      }
+    },
+  )
+
+  // ============== Local Compute Tools ==============
+
+  // Get relay DO stub for direct RPC calls
+  const getRelayStub = () => {
+    const id = env.RELAY.idFromName(roomId)
+    return env.RELAY.get(id)
+  }
+
+  server.tool(
+    'read_file',
+    `Read a file from the local machine connected via the Personal Compute Relay.
+
+Returns the file content as text. The local client must be connected for this to work.
+
+Use this tool to:
+- Read source code files
+- Read configuration files
+- Read any text file on the connected machine`,
+    {
+      path: z.string().describe('Absolute path to the file to read'),
+    },
+    async ({ path }) => {
+      try {
+        const stub = getRelayStub()
+        const result = await stub.readFile(path)
+        return {
+          content: [{ type: 'text', text: result.content }],
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        return {
+          content: [{ type: 'text', text: `Error reading file: ${errorMessage}` }],
+          isError: true,
+        }
+      }
+    },
+  )
+
+  server.tool(
+    'write_file',
+    `Write content to a file on the local machine connected via the Personal Compute Relay.
+
+IMPORTANT: You must read the file first before writing to it. This ensures you have the latest
+content and prevents accidentally overwriting changes made by others.
+
+If the file has been modified since you last read it, the write will fail and you'll need to
+read the file again to get the latest content.
+
+Use this tool to:
+- Create new files
+- Modify existing files
+- Save generated code or content`,
+    {
+      path: z.string().describe('Absolute path to the file to write'),
+      content: z.string().describe('Content to write to the file'),
+    },
+    async ({ path, content }) => {
+      try {
+        const stub = getRelayStub()
+        await stub.writeFile(path, content)
+        return {
+          content: [{ type: 'text', text: `Successfully wrote to ${path}` }],
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        return {
+          content: [{ type: 'text', text: `Error writing file: ${errorMessage}` }],
+          isError: true,
+        }
+      }
+    },
+  )
+
+  server.tool(
+    'bash',
+    `Execute a bash command on the local machine connected via the Personal Compute Relay.
+
+The command runs in the specified working directory (or home directory if not specified).
+Both stdout and stderr are captured and returned.
+
+Use this tool for:
+- Running git commands
+- Installing dependencies (npm, pip, etc.)
+- Building projects
+- Running tests
+- Any shell operations`,
+    {
+      command: z.string().describe('The bash command to execute'),
+      workdir: z.string().optional().describe('Working directory for the command (optional)'),
+      timeout: z.number().optional().default(30000).describe('Timeout in milliseconds (default: 30000, max: 300000)'),
+    },
+    async ({ command, workdir, timeout }) => {
+      try {
+        const stub = getRelayStub()
+        const result = await stub.executeBash(command, {
+          workdir,
+          timeout: Math.min(timeout || 30000, 300000),
+        })
+
+        let output = ''
+        if (result.stdout) {
+          output += result.stdout
+        }
+        if (result.stderr) {
+          output += (output ? '\n\n' : '') + `stderr:\n${result.stderr}`
+        }
+        if (result.exitCode !== 0) {
+          output += (output ? '\n\n' : '') + `Exit code: ${result.exitCode}`
+        }
+
+        return {
+          content: [{ type: 'text', text: output || 'Command completed with no output' }],
+          isError: result.exitCode !== 0,
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        return {
+          content: [{ type: 'text', text: `Error executing command: ${errorMessage}` }],
           isError: true,
         }
       }

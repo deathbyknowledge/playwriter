@@ -1,0 +1,26 @@
+{
+  "name": "rebrow-local",
+  "version": "0.1.0",
+  "description": "Local client for Personal Compute Relay - connects your machine to cloud AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "rebrow-local": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

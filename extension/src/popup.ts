@@ -2,10 +2,12 @@
 
 interface RelaySettings {
   relayUrl: string
+  passphrase: string
 }
 
 const DEFAULT_SETTINGS: RelaySettings = {
   relayUrl: '',
+  passphrase: '',
 }
 
 async function getSettings(): Promise<RelaySettings> {
@@ -38,7 +40,9 @@ async function toggleCurrentTab(): Promise<void> {
 
 function updateUI(settings: RelaySettings): void {
   const relayUrlInput = document.getElementById('relay-url') as HTMLInputElement
+  const passphraseInput = document.getElementById('passphrase') as HTMLInputElement
   relayUrlInput.value = settings.relayUrl
+  passphraseInput.value = settings.passphrase
 }
 
 function updateStatus(state: {
@@ -91,9 +95,11 @@ async function init(): Promise<void> {
   const saveBtn = document.getElementById('save-btn') as HTMLButtonElement
   saveBtn.addEventListener('click', async () => {
     const relayUrlInput = document.getElementById('relay-url') as HTMLInputElement
+    const passphraseInput = document.getElementById('passphrase') as HTMLInputElement
 
     const newSettings: RelaySettings = {
       relayUrl: relayUrlInput.value.trim(),
+      passphrase: passphraseInput.value,
     }
 
     await saveSettings(newSettings)

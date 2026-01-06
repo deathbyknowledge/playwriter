@@ -103,9 +103,80 @@ export interface ServerCommandMessage {
 }
 
 // WebSocket tags for hibernation
-export type WebSocketTag = 'extension' | `mcp:${string}`
+export type WebSocketTag = 'extension' | `mcp:${string}` | `local:${string}`
 
 // Room state stored in DO
 export interface RoomState {
   connectedTargets: Map<string, ConnectedTarget>
+}
+
+// ============== Local Client Types ==============
+
+// Commands sent from relay to local client
+export interface LocalCommand {
+  id: number
+  method: 'file.read' | 'file.write' | 'bash.execute'
+  params: LocalReadParams | LocalWriteParams | LocalBashParams
+}
+
+export interface LocalReadParams {
+  path: string
+}
+
+export interface LocalWriteParams {
+  path: string
+  content: string
+  expectedMtime?: number // Used for optimistic concurrency - write fails if file was modified
+}
+
+export interface LocalBashParams {
+  command: string
+  workdir?: string
+  timeout?: number
+}
+
+// Response from local client to relay
+export interface LocalResponse {
+  id: number
+  result?: LocalReadResult | LocalWriteResult | LocalBashResult
+  error?: string
+}
+
+export interface LocalReadResult {
+  content: string
+  mtime: number // Unix timestamp ms - used for write validation
+}
+
+export interface LocalWriteResult {
+  success: true
+  mtime: number // New mtime after write
+}
+
+export interface LocalBashResult {
+  stdout: string
+  stderr: string
+  exitCode: number
+}
+
+// Messages from local client
+export interface LocalPongMessage {
+  method: 'pong'
+}
+
+export interface LocalLogMessage {
+  method: 'log'
+  params: {
+    level: 'log' | 'debug' | 'info' | 'warn' | 'error'
+    args: string[]
+  }
+}
+
+export type LocalMessage = LocalResponse | LocalPongMessage | LocalLogMessage
+
+// ============== Auth Types ==============
+
+// Stored in DO for passphrase validation
+export interface RoomAuth {
+  passphraseHash: string // SHA-256 hash of passphrase
+  createdAt: number
 }

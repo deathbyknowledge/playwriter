@@ -1,3 +1,4 @@
 packages:
   - extension
   - rebrow
+  - local-client

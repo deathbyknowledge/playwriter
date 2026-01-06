@@ -9,7 +9,20 @@ import type {
   ExtensionMessage,
   ExtensionEventMessage,
   WebSocketTag,
+  LocalCommand,
+  LocalMessage,
+  LocalResponse,
+  RoomAuth,
 } from './types.js'
+
+// Simple hash function for passphrase (SHA-256)
+async function hashPassphrase(passphrase: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(passphrase)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
 
 /**
  * RebrowRelay is a Durable Object that acts as a WebSocket relay between:
@@ -33,8 +46,24 @@ export class RebrowRelay extends DurableObject<Env> {
     }
   >()
 
+  // Pending requests waiting for local client response
+  private pendingLocalRequests = new Map<
+    number,
+    {
+      resolve: (result: unknown) => void
+      reject: (error: Error) => void
+    }
+  >()
+
+  // Track file read timestamps for write validation
+  // Map of filepath -> last read timestamp (mtime from local client)
+  private fileReadTimestamps = new Map<string, number>()
+
   // Message ID counter for requests to extension
   private messageId = 0
+
+  // Message ID counter for requests to local client
+  private localMessageId = 0
 
   // Ping interval handle
   private pingInterval: ReturnType<typeof setInterval> | null = null
@@ -43,14 +72,46 @@ export class RebrowRelay extends DurableObject<Env> {
     super(ctx, env)
   }
 
+  // ============== Passphrase Auth ==============
+
+  /**
+   * Validate passphrase - first connection sets it, subsequent must match
+   */
+  async validatePassphrase(passphrase: string): Promise<boolean> {
+    const stored = await this.ctx.storage.get<RoomAuth>('auth')
+
+    if (!stored) {
+      // First connection - set the passphrase
+      const hash = await hashPassphrase(passphrase)
+      await this.ctx.storage.put<RoomAuth>('auth', {
+        passphraseHash: hash,
+        createdAt: Date.now(),
+      })
+      console.log('[Relay] Passphrase set for room')
+      return true
+    }
+
+    // Validate against stored hash
+    const hash = await hashPassphrase(passphrase)
+    return hash === stored.passphraseHash
+  }
+
   /**
    * Handle incoming HTTP requests - upgrade to WebSocket
    */
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
+    const passphrase = url.searchParams.get('passphrase')
 
-    // Health check endpoint
+    // Health check endpoint - also used for passphrase validation
     if (url.pathname === '/' || url.pathname === '/health') {
+      // If passphrase is provided, validate it
+      if (passphrase) {
+        const isValid = await this.validatePassphrase(passphrase)
+        if (!isValid) {
+          return new Response('Invalid passphrase', { status: 403 })
+        }
+      }
       return new Response('OK', { status: 200 })
     }
 
@@ -60,9 +121,32 @@ export class RebrowRelay extends DurableObject<Env> {
       return Response.json({ connected: extensionWs !== null })
     }
 
+    // Local client status endpoint
+    if (url.pathname === '/local/status') {
+      const localWs = this.getLocalWebSocket()
+      return Response.json({ connected: localWs !== null })
+    }
+
+    // All other endpoints require passphrase in query param
+    if (!passphrase) {
+      return new Response('Passphrase required', { status: 401 })
+    }
+
+    const isValid = await this.validatePassphrase(passphrase)
+    if (!isValid) {
+      return new Response('Invalid passphrase', { status: 403 })
+    }
+
     // WebSocket upgrade for extension
     if (url.pathname === '/extension') {
       return this.handleExtensionUpgrade(request)
+    }
+
+    // WebSocket upgrade for local client
+    // Format: /local or /local/:clientId
+    if (url.pathname === '/local' || url.pathname.startsWith('/local/')) {
+      const clientId = url.pathname.split('/')[2] || 'default'
+      return this.handleLocalUpgrade(request, clientId)
     }
 
     // WebSocket upgrade for MCP clients
@@ -123,6 +207,31 @@ export class RebrowRelay extends DurableObject<Env> {
   }
 
   /**
+   * Handle WebSocket upgrade for local client
+   */
+  private handleLocalUpgrade(request: Request, clientId: string): Response {
+    // Check if a local client is already connected (only one allowed)
+    const existingWs = this.getLocalWebSocket()
+    if (existingWs) {
+      console.log(`[Relay] Rejecting duplicate local client: ${clientId}`)
+      return new Response('Local client already connected', { status: 409 })
+    }
+
+    const pair = new WebSocketPair()
+    const [client, server] = Object.values(pair)
+
+    // Accept with hibernation and tag
+    this.ctx.acceptWebSocket(server, [`local:${clientId}`] as WebSocketTag[])
+
+    // Start ping interval to keep local client alive
+    this.startPingInterval()
+
+    console.log(`[Relay] Local client connected: ${clientId}`)
+
+    return new Response(null, { status: 101, webSocket: client })
+  }
+
+  /**
    * Called when a WebSocket message is received (hibernation API)
    */
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
@@ -140,6 +249,13 @@ export class RebrowRelay extends DurableObject<Env> {
     if (tags.includes('extension')) {
       await this.handleExtensionMessage(ws, data as ExtensionMessage)
     } else {
+      // Check for local client tag
+      const localTag = tags.find((t) => t.startsWith('local:'))
+      if (localTag) {
+        await this.handleLocalMessage(ws, data as LocalMessage)
+        return
+      }
+
       // Find MCP client ID from tag
       const mcpTag = tags.find((t) => t.startsWith('mcp:'))
       if (mcpTag) {
@@ -157,19 +273,31 @@ export class RebrowRelay extends DurableObject<Env> {
 
     if (tags.includes('extension')) {
       console.log(`[Relay] Extension disconnected: code=${code} reason=${reason}`)
-      this.stopPingInterval()
       this.cleanupExtensionState()
 
       // Notify all MCP clients that extension disconnected
       for (const mcpWs of this.getMcpWebSockets()) {
         mcpWs.close(1000, 'Extension disconnected')
       }
-    } else {
-      const mcpTag = tags.find((t) => t.startsWith('mcp:'))
-      if (mcpTag) {
-        const clientId = mcpTag.slice(4)
-        console.log(`[Relay] MCP client disconnected: ${clientId}`)
-      }
+    }
+
+    // Check for local client
+    const localTag = tags.find((t) => t.startsWith('local:'))
+    if (localTag) {
+      const clientId = localTag.slice(6)
+      console.log(`[Relay] Local client disconnected: ${clientId} code=${code} reason=${reason}`)
+      this.cleanupLocalState()
+    }
+
+    const mcpTag = tags.find((t) => t.startsWith('mcp:'))
+    if (mcpTag) {
+      const clientId = mcpTag.slice(4)
+      console.log(`[Relay] MCP client disconnected: ${clientId}`)
+    }
+
+    // Stop ping if no extension or local client connected
+    if (!this.getExtensionWebSocket() && !this.getLocalWebSocket()) {
+      this.stopPingInterval()
     }
   }
 
@@ -257,6 +385,38 @@ export class RebrowRelay extends DurableObject<Env> {
       // Forward event to all MCP clients
       const cdpEvent: CDPEvent = { method, params, sessionId }
       this.broadcastToMcpClients(cdpEvent)
+    }
+  }
+
+  /**
+   * Handle message from local client
+   */
+  private async handleLocalMessage(ws: WebSocket, message: LocalMessage): Promise<void> {
+    // Response to a command we sent
+    if ('id' in message && message.id !== undefined && !('method' in message)) {
+      const response = message as LocalResponse
+      const pending = this.pendingLocalRequests.get(response.id)
+      if (pending) {
+        this.pendingLocalRequests.delete(response.id)
+        if (response.error) {
+          pending.reject(new Error(response.error))
+        } else {
+          pending.resolve(response.result)
+        }
+      }
+      return
+    }
+
+    // Pong response - keep-alive
+    if ('method' in message && message.method === 'pong') {
+      return
+    }
+
+    // Log message from local client
+    if ('method' in message && message.method === 'log') {
+      const { level, args } = message.params
+      console.log(`[Local] [${level.toUpperCase()}]`, ...args)
+      return
     }
   }
 
@@ -530,6 +690,20 @@ export class RebrowRelay extends DurableObject<Env> {
   }
 
   /**
+   * Get the local client WebSocket (if connected)
+   */
+  private getLocalWebSocket(): WebSocket | null {
+    const allWs = this.ctx.getWebSockets()
+    for (const ws of allWs) {
+      const tags = this.ctx.getTags(ws)
+      if (tags.some((t) => t.startsWith('local:'))) {
+        return ws
+      }
+    }
+    return null
+  }
+
+  /**
    * Clean up state when extension disconnects
    */
   private cleanupExtensionState(): void {
@@ -541,7 +715,18 @@ export class RebrowRelay extends DurableObject<Env> {
   }
 
   /**
-   * Start ping interval to keep extension WebSocket alive
+   * Clean up state when local client disconnects
+   */
+  private cleanupLocalState(): void {
+    this.fileReadTimestamps.clear()
+    for (const pending of this.pendingLocalRequests.values()) {
+      pending.reject(new Error('Local client connection closed'))
+    }
+    this.pendingLocalRequests.clear()
+  }
+
+  /**
+   * Start ping interval to keep extension/local WebSocket alive
    */
   private startPingInterval(): void {
     this.stopPingInterval()
@@ -549,6 +734,10 @@ export class RebrowRelay extends DurableObject<Env> {
       const extensionWs = this.getExtensionWebSocket()
       if (extensionWs) {
         extensionWs.send(JSON.stringify({ method: 'ping' }))
+      }
+      const localWs = this.getLocalWebSocket()
+      if (localWs) {
+        localWs.send(JSON.stringify({ method: 'ping' }))
       }
     }, 5000)
   }
@@ -561,5 +750,97 @@ export class RebrowRelay extends DurableObject<Env> {
       clearInterval(this.pingInterval)
       this.pingInterval = null
     }
+  }
+
+  // ============== Local Client Command Interface ==============
+
+  /**
+   * Send a command to the local client and wait for response
+   */
+  async sendToLocalClient(command: Omit<LocalCommand, 'id'>, timeout = 30000): Promise<unknown> {
+    const localWs = this.getLocalWebSocket()
+    if (!localWs) {
+      throw new Error('Local client not connected')
+    }
+
+    const id = ++this.localMessageId
+    const message: LocalCommand = { id, ...command } as LocalCommand
+
+    localWs.send(JSON.stringify(message))
+
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        this.pendingLocalRequests.delete(id)
+        reject(new Error(`Local client request timeout after ${timeout}ms: ${command.method}`))
+      }, timeout)
+
+      this.pendingLocalRequests.set(id, {
+        resolve: (result) => {
+          clearTimeout(timeoutId)
+          resolve(result)
+        },
+        reject: (error) => {
+          clearTimeout(timeoutId)
+          reject(error)
+        },
+      })
+    })
+  }
+
+  /**
+   * Read a file via local client - tracks mtime for write validation
+   */
+  async readFile(path: string): Promise<{ content: string; mtime: number }> {
+    const result = (await this.sendToLocalClient({
+      method: 'file.read',
+      params: { path },
+    })) as { content: string; mtime: number }
+
+    // Track the mtime for write validation
+    this.fileReadTimestamps.set(path, result.mtime)
+
+    return result
+  }
+
+  /**
+   * Write a file via local client - validates mtime hasn't changed since read
+   */
+  async writeFile(path: string, content: string): Promise<{ success: true; mtime: number }> {
+    const lastReadMtime = this.fileReadTimestamps.get(path)
+
+    // If we've never read this file, that's an error
+    if (lastReadMtime === undefined) {
+      throw new Error(
+        `Cannot write to ${path}: file has not been read yet. Read the file first to ensure you have the latest content.`,
+      )
+    }
+
+    const result = (await this.sendToLocalClient({
+      method: 'file.write',
+      params: { path, content, expectedMtime: lastReadMtime },
+    })) as { success: true; mtime: number }
+
+    // Update our tracked mtime to the new value
+    this.fileReadTimestamps.set(path, result.mtime)
+
+    return result
+  }
+
+  /**
+   * Execute a bash command via local client
+   */
+  async executeBash(
+    command: string,
+    options?: { workdir?: string; timeout?: number },
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    const result = (await this.sendToLocalClient(
+      {
+        method: 'bash.execute',
+        params: { command, workdir: options?.workdir, timeout: options?.timeout },
+      },
+      options?.timeout ? options.timeout + 5000 : 30000,
+    )) as { stdout: string; stderr: string; exitCode: number }
+
+    return result
   }
 }
