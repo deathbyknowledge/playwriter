@@ -36,6 +36,10 @@ export class RebrowRelay extends DurableObject<Env> {
   // Track connected targets (pages) from the extension
   private connectedTargets = new Map<string, ConnectedTarget>()
 
+  // Track which targets have been sent to which MCP client (to avoid duplicates)
+  // Map of mcpClientId -> Set of targetIds that have been sent via attachedToTarget
+  private sentTargetsPerClient = new Map<string, Set<string>>()
+
   // Pending requests waiting for extension response
   private pendingRequests = new Map<
     number,
@@ -293,6 +297,8 @@ export class RebrowRelay extends DurableObject<Env> {
     if (mcpTag) {
       const clientId = mcpTag.slice(4)
       console.log(`[Relay] MCP client disconnected: ${clientId}`)
+      // Clean up target tracking for this client
+      this.sentTargetsPerClient.delete(clientId)
     }
 
     // Stop ping if no extension or local client connected
@@ -442,7 +448,19 @@ export class RebrowRelay extends DurableObject<Env> {
 
       // Send attachedToTarget events after setAutoAttach
       if (method === 'Target.setAutoAttach' && !sessionId) {
+        // Initialize tracking set for this client if needed
+        if (!this.sentTargetsPerClient.has(clientId)) {
+          this.sentTargetsPerClient.set(clientId, new Set())
+        }
+        const sentTargets = this.sentTargetsPerClient.get(clientId)!
+
         for (const target of this.connectedTargets.values()) {
+          // Skip if we already sent this target to this client
+          if (sentTargets.has(target.targetId)) {
+            continue
+          }
+          sentTargets.add(target.targetId)
+
           const attachedPayload: CDPEvent = {
             method: 'Target.attachedToTarget',
             params: {
@@ -656,7 +674,29 @@ export class RebrowRelay extends DurableObject<Env> {
    */
   private broadcastToMcpClients(event: CDPEvent): void {
     const message = JSON.stringify(event)
+
+    // For attachedToTarget events, track which targets have been sent to which client
+    // to avoid sending duplicates later in setAutoAttach
+    let targetId: string | undefined
+    if (event.method === 'Target.attachedToTarget' && event.params) {
+      const params = event.params as { targetInfo?: { targetId?: string } }
+      targetId = params.targetInfo?.targetId
+    }
+
     for (const ws of this.getMcpWebSockets()) {
+      // Track sent targets per client
+      if (targetId) {
+        const tags = this.ctx.getTags(ws)
+        const mcpTag = tags.find((t) => t.startsWith('mcp:'))
+        if (mcpTag) {
+          const clientId = mcpTag.slice(4)
+          if (!this.sentTargetsPerClient.has(clientId)) {
+            this.sentTargetsPerClient.set(clientId, new Set())
+          }
+          this.sentTargetsPerClient.get(clientId)!.add(targetId)
+        }
+      }
+
       ws.send(message)
     }
   }
@@ -708,6 +748,7 @@ export class RebrowRelay extends DurableObject<Env> {
    */
   private cleanupExtensionState(): void {
     this.connectedTargets.clear()
+    this.sentTargetsPerClient.clear()
     for (const pending of this.pendingRequests.values()) {
       pending.reject(new Error('Extension connection closed'))
     }
