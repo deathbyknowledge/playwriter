@@ -40,23 +40,7 @@ importers:
         specifier: ^3.1.1
         version: 3.1.4(vite@5.4.21(@types/node@22.19.3))
 
-  local-client:
-    dependencies:
-      ws:
-        specifier: ^8.18.0
-        version: 8.18.0
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.5
-        version: 22.19.3
-      '@types/ws':
-        specifier: ^8.5.13
-        version: 8.18.1
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-
-  rebrow:
+  pcr:
     dependencies:
       '@cloudflare/sandbox':
         specifier: ^0.3.3
@@ -83,6 +67,22 @@ importers:
       wrangler:
         specifier: ^4.23.0
         version: 4.54.0(@cloudflare/workers-types@4.20260103.0)
+
+  pcr-local:
+    dependencies:
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.19.3
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
 packages:
 

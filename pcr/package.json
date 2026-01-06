@@ -1,6 +1,7 @@
 {
-  "name": "rebrow",
+  "name": "pcr",
   "version": "0.1.0",
+  "description": "Personal Compute Relay - Cloudflare Worker relay server",
   "private": true,
   "type": "module",
   "scripts": {

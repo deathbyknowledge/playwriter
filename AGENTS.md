@@ -4,11 +4,11 @@ This codebase implements a relay that gives cloud AI agents access to personal c
 
 ## Components
 
-| Directory       | Description                                           |
-| --------------- | ----------------------------------------------------- |
-| `rebrow/`       | Cloudflare Worker - relay server with Durable Objects |
-| `extension/`    | Chrome extension - connects browser tabs to relay     |
-| `local-client/` | Node.js CLI - connects local machine to relay         |
+| Directory    | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| `pcr/`       | Cloudflare Worker - relay server with Durable Objects |
+| `extension/` | Chrome extension - connects browser tabs to relay     |
+| `pcr-local/` | Node.js CLI - connects local machine to relay         |
 
 ## Architecture
 
@@ -37,13 +37,13 @@ This codebase implements a relay that gives cloud AI agents access to personal c
 
 | File                          | Purpose                                                          |
 | ----------------------------- | ---------------------------------------------------------------- |
-| `rebrow/src/index.ts`         | Worker entry point, routes requests                              |
-| `rebrow/src/relay.ts`         | Durable Object - manages WebSocket connections, routes commands  |
-| `rebrow/src/mcp-server.ts`    | MCP server with all tools (execute, read_file, write_file, bash) |
+| `pcr/src/index.ts`            | Worker entry point, routes requests                              |
+| `pcr/src/relay.ts`            | Durable Object - manages WebSocket connections, routes commands  |
+| `pcr/src/mcp-server.ts`       | MCP server with all tools (execute, read_file, write_file, bash) |
 | `extension/src/background.ts` | Service worker - chrome.debugger API, CDP forwarding             |
 | `extension/src/popup.ts`      | Settings UI for room URL and passphrase                          |
-| `local-client/src/index.ts`   | LocalClient class - handles file/bash commands                   |
-| `local-client/src/cli.ts`     | CLI entry point                                                  |
+| `pcr-local/src/index.ts`      | LocalClient class - handles file/bash commands                   |
+| `pcr-local/src/cli.ts`        | CLI entry point                                                  |
 
 ## Authentication Flow
 
@@ -81,21 +81,21 @@ This codebase implements a relay that gives cloud AI agents access to personal c
 
 ```bash
 # Worker (auto-reloads)
-cd rebrow && pnpm dev
+cd pcr && pnpm dev
 
 # Extension (rebuild after changes)
 cd extension && pnpm build
 
 # Local client (rebuild after changes)
-cd local-client && pnpm build
+cd pcr-local && pnpm build
 ```
 
 ## Testing Locally
 
-1. Start worker: `cd rebrow && pnpm dev`
+1. Start worker: `cd pcr && pnpm dev`
 2. Configure extension: Room URL = `http://localhost:8787/room/test`, Passphrase = `test`
 3. Connect a tab
-4. Start local client: `cd local-client && node dist/cli.js http://localhost:8787/room/test test`
+4. Start local client: `cd pcr-local && node dist/cli.js http://localhost:8787/room/test test`
 5. Test MCP: `curl -X POST http://localhost:8787/room/test/mcp-server -H "Authorization: Bearer test" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'`
 
 ## Guidelines

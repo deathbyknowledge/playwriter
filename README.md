@@ -24,12 +24,12 @@ Personal Compute Relay bridges the gap between cloud-hosted AI agents and your l
 ### 1. Deploy the Relay
 
 ```bash
-cd rebrow
+cd pcr
 pnpm install
 pnpm deploy
 ```
 
-Note your deployed URL (e.g., `https://rebrow.your-subdomain.workers.dev`).
+Note your deployed URL (e.g., `https://pcr.your-subdomain.workers.dev`).
 
 ### 2. Connect Your Browser (Optional)
 
@@ -44,16 +44,16 @@ pnpm install && pnpm build
 2. Enable "Developer mode"
 3. Click "Load unpacked" → select `extension/dist`
 4. Click the extension icon
-5. Enter Room URL: `https://rebrow.your-subdomain.workers.dev/room/my-room`
+5. Enter Room URL: `https://pcr.your-subdomain.workers.dev/room/my-room`
 6. Enter Passphrase: `your-secret-passphrase`
 7. Click **Save**, then **Connect Tab**
 
 ### 3. Connect Your Local Machine (Optional)
 
 ```bash
-cd local-client
+cd pcr-local
 pnpm install && pnpm build
-node dist/cli.js https://rebrow.your-subdomain.workers.dev/room/my-room your-secret-passphrase
+node dist/cli.js https://pcr.your-subdomain.workers.dev/room/my-room your-secret-passphrase
 ```
 
 ### 4. Configure Your AI Agent
@@ -63,8 +63,8 @@ Add to your MCP client config (e.g., Claude Desktop `claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
-    "personal-compute": {
-      "url": "https://rebrow.your-subdomain.workers.dev/room/my-room/mcp-server",
+    "pcr": {
+      "url": "https://pcr.your-subdomain.workers.dev/room/my-room/mcp-server",
       "headers": {
         "Authorization": "Bearer your-secret-passphrase"
       }
@@ -132,21 +132,21 @@ await screenshotWithAccessibilityLabels({ page })
 
 ## Architecture
 
-- **`rebrow/`** - Cloudflare Worker + Durable Objects relay
+- **`pcr/`** - Cloudflare Worker + Durable Objects relay
 - **`extension/`** - Chrome extension for browser control
-- **`local-client/`** - Node.js CLI for local machine access
+- **`pcr-local/`** - Node.js CLI for local machine access
 
 ## Development
 
 ```bash
 # Start the worker locally
-cd rebrow && pnpm dev
+cd pcr && pnpm dev
 
 # Build the extension
 cd extension && pnpm build
 
 # Build local client
-cd local-client && pnpm build
+cd pcr-local && pnpm build
 
 # Test locally
 # Extension: Room URL = http://localhost:8787/room/test, Passphrase = test

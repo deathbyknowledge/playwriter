@@ -1,11 +1,11 @@
 {
-  "name": "rebrow-local",
+  "name": "pcr-local",
   "version": "0.1.0",
-  "description": "Local client for Personal Compute Relay - connects your machine to cloud AI agents",
+  "description": "Personal Compute Relay - Local client that connects your machine to cloud AI agents",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "rebrow-local": "dist/cli.js"
+    "pcr-local": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",

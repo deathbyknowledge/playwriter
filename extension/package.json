@@ -1,7 +1,7 @@
 {
-  "name": "rebrow-extension",
+  "name": "pcr-extension",
   "version": "0.1.0",
-  "description": "Rebrow - Remote Browser Control Extension",
+  "description": "Personal Compute Relay - Chrome extension for browser control",
   "private": true,
   "license": "MIT",
   "scripts": {

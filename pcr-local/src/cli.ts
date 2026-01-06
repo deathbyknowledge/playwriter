@@ -3,22 +3,22 @@
 import { LocalClient } from './index.js'
 
 const usage = `
-Usage: rebrow-local <relay-url> <passphrase>
+Usage: pcr-local <relay-url> <passphrase>
 
 Example:
-  rebrow-local https://relay.example.com/room/my-room my-secret-passphrase
+  pcr-local https://pcr.example.com/room/my-room my-secret-passphrase
 
 Environment variables:
-  REBROW_RELAY_URL    - Default relay URL
-  REBROW_PASSPHRASE   - Default passphrase
+  PCR_RELAY_URL    - Default relay URL
+  PCR_PASSPHRASE   - Default passphrase
 
-The local client connects to the relay and exposes your machine's filesystem
-and shell to cloud AI agents via the MCP protocol.
+The local client connects to the Personal Compute Relay and exposes your
+machine's filesystem and shell to cloud AI agents via the MCP protocol.
 `
 
 async function main() {
-  const relayUrl = process.argv[2] || process.env.REBROW_RELAY_URL
-  const passphrase = process.argv[3] || process.env.REBROW_PASSPHRASE
+  const relayUrl = process.argv[2] || process.env.PCR_RELAY_URL
+  const passphrase = process.argv[3] || process.env.PCR_PASSPHRASE
 
   if (!relayUrl || !passphrase) {
     console.error(usage)
