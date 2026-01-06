@@ -228,15 +228,7 @@ await el.click();
  * 2. Executes the user's code
  * 3. Returns the result as JSON
  */
-function generateExecutionScript({
-  code,
-  relayWsUrl,
-  timeout,
-}: {
-  code: string
-  relayWsUrl: string
-  timeout: number
-}): string {
+function generateExecutionScript({ relayWsUrl, timeout }: { relayWsUrl: string; timeout: number }): string {
   return `
 const { chromium } = require('playwright-core');
 
@@ -268,33 +260,68 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Helper function for accessibility snapshot
 async function accessibilitySnapshot(options) {
   const { page, search, contextLines = 10, showDiffSinceLastCall = false } = options;
+  
+  let snapshotStr;
+  
+  // Try _snapshotForAI first (if available), then fall back to accessibility.snapshot()
   if (page._snapshotForAI) {
     const snapshot = await page._snapshotForAI();
-    const snapshotStr = typeof snapshot === 'string' ? snapshot : JSON.stringify(snapshot, null, 2);
-    
-    if (!search) {
-      return snapshotStr;
-    }
-    
-    const lines = snapshotStr.split('\\n');
-    const matches = [];
-    const searchRegex = search instanceof RegExp ? search : new RegExp(search);
-    
-    for (let i = 0; i < lines.length && matches.length < 10; i++) {
-      if (searchRegex.test(lines[i])) {
-        matches.push({ line: lines[i], index: i });
-      }
-    }
-    
-    if (matches.length === 0) return 'No matches found';
-    
-    return matches.map(m => {
-      const start = Math.max(0, m.index - contextLines);
-      const end = Math.min(lines.length, m.index + contextLines + 1);
-      return lines.slice(start, end).join('\\n');
-    }).join('\\n\\n---\\n\\n');
+    snapshotStr = typeof snapshot === 'string' ? snapshot : JSON.stringify(snapshot, null, 2);
+  } else if (page.accessibility && page.accessibility.snapshot) {
+    // Use standard Playwright accessibility API
+    const snapshot = await page.accessibility.snapshot({ interestingOnly: false });
+    snapshotStr = formatAccessibilityTree(snapshot, 0);
+  } else {
+    throw new Error('accessibilitySnapshot is not available on this page');
   }
-  throw new Error('accessibilitySnapshot is not available on this page');
+  
+  if (!search) {
+    return snapshotStr;
+  }
+  
+  const lines = snapshotStr.split('\\n');
+  const matches = [];
+  const searchRegex = search instanceof RegExp ? search : new RegExp(search);
+  
+  for (let i = 0; i < lines.length && matches.length < 10; i++) {
+    if (searchRegex.test(lines[i])) {
+      matches.push({ line: lines[i], index: i });
+    }
+  }
+  
+  if (matches.length === 0) return 'No matches found';
+  
+  return matches.map(m => {
+    const start = Math.max(0, m.index - contextLines);
+    const end = Math.min(lines.length, m.index + contextLines + 1);
+    return lines.slice(start, end).join('\\n');
+  }).join('\\n\\n---\\n\\n');
+}
+
+// Format accessibility tree into readable string
+function formatAccessibilityTree(node, depth) {
+  if (!node) return '';
+  
+  const indent = '  '.repeat(depth);
+  let result = '';
+  
+  // Format this node
+  const role = node.role || 'generic';
+  const name = node.name ? ' "' + node.name.replace(/"/g, '\\\\"') + '"' : '';
+  const value = node.value ? ' [value=' + node.value + ']' : '';
+  const checked = node.checked !== undefined ? ' [checked=' + node.checked + ']' : '';
+  const focused = node.focused ? ' [focused]' : '';
+  
+  result += indent + '- ' + role + name + value + checked + focused + '\\n';
+  
+  // Recursively format children
+  if (node.children) {
+    for (const child of node.children) {
+      result += formatAccessibilityTree(child, depth + 1);
+    }
+  }
+  
+  return result;
 }
 
 // waitForPageLoad - smart load detection that ignores analytics/ads
@@ -514,12 +541,13 @@ async function main() {
     }
     
     // Execute user code
+    // Read code from separate file to avoid escaping issues with template literals
+    const fs = require('fs');
+    const userCode = fs.readFileSync('/workspace/usercode.js', 'utf-8');
     const asyncFn = new Function(
       'page', 'context', 'state', 'accessibilitySnapshot', 'console',
       'waitForPageLoad', 'getLatestLogs', 'screenshotWithAccessibilityLabels', 'sleep',
-      \`return (async () => {
-        ${code.replace(/`/g, '\\`')}
-      })();\`
+      'return (async () => {' + userCode + '})();'
     );
     
     result = await Promise.race([
@@ -539,6 +567,7 @@ async function main() {
     };
     originalConsole.log(JSON.stringify(output));
     setImmediate(() => process.exit(1));
+    return; // Prevent success output from running
   }
   
   // Output success result as JSON
@@ -647,8 +676,11 @@ Examples:
         const relayWsUrl = `${wsProtocol}${wsHost}/room/${roomId}/mcp/sandbox-${Date.now()}?passphrase=${encodeURIComponent(passphrase)}`
 
         // Generate and write the execution script
-        const script = generateExecutionScript({ code, relayWsUrl, timeout })
+        const script = generateExecutionScript({ relayWsUrl, timeout })
         await sandbox.writeFile('/workspace/execute.js', script)
+
+        // Write user code to a separate file to avoid escaping issues
+        await sandbox.writeFile('/workspace/usercode.js', code)
 
         // Run the script
         const execResult = await sandbox.exec('node /workspace/execute.js', {
