@@ -19,6 +19,7 @@ class_name = "Sandbox"
 [[containers]]
 class_name = "Sandbox"
 image = "./Dockerfile"
+instance_type = "standard-2"
 
 # Migrations for the Durable Objects
 [[migrations]]
@@ -26,3 +27,14 @@ tag = "v1"
 new_classes = ["RebrowRelay"]
 new_sqlite_classes = ["Sandbox"]
 
+[observability]
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

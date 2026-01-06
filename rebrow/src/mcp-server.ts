@@ -599,11 +599,18 @@ export function createRebrowMcpServer({
     'execute',
     EXECUTE_PROMPT,
     {
-      code: z
-        .string()
-        .describe(
-          'js playwright code, has {page, state, context} in scope. Should be one line, using ; to execute multiple statements.',
-        ),
+      code: z.string().describe(
+        `JavaScript code to execute in Playwright context. Variables in scope: page, context, state, sleep(ms).
+
+IMPORTANT: This must be valid JavaScript code, NOT JSON. Use await for async operations.
+
+Examples:
+- Get URL: console.log(page.url());
+- Click button: await page.locator('button').click();
+- Get page state: console.log(await accessibilitySnapshot({ page }));
+- Fill input: await page.locator('input').fill('text');
+- Multiple statements: await page.click('button'); console.log('clicked');`,
+      ),
       timeout: z.number().default(30000).describe('Timeout in milliseconds for code execution (default: 30000ms)'),
     },
     async ({ code, timeout }) => {
