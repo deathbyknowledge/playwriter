@@ -29,9 +29,40 @@ export class LocalClient {
   private options: LocalClientOptions
   private reconnectTimeout: NodeJS.Timeout | null = null
   private shouldReconnect = true
+  private pingInterval: NodeJS.Timeout | null = null
+  private pongReceived = true
 
   constructor(options: LocalClientOptions) {
     this.options = options
+  }
+
+  private startPingInterval() {
+    this.stopPingInterval()
+    this.pongReceived = true
+
+    // Send WebSocket-level ping every 30 seconds
+    this.pingInterval = setInterval(() => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        return
+      }
+
+      // Check if we received a pong since last ping
+      if (!this.pongReceived) {
+        this.log('warn', 'No pong received, connection appears dead')
+        this.ws.terminate() // Force close, will trigger reconnect
+        return
+      }
+
+      this.pongReceived = false
+      this.ws.ping()
+    }, 30000)
+  }
+
+  private stopPingInterval() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+      this.pingInterval = null
+    }
   }
 
   private log(level: string, message: string) {
@@ -72,6 +103,7 @@ export class LocalClient {
 
       this.ws.on('open', () => {
         this.log('info', 'Connected to relay')
+        this.startPingInterval()
         this.options.onConnect?.()
         resolve()
       })
@@ -80,9 +112,14 @@ export class LocalClient {
         this.handleMessage(data.toString())
       })
 
+      this.ws.on('pong', () => {
+        this.pongReceived = true
+      })
+
       this.ws.on('close', (code, reason) => {
         const reasonStr = reason?.toString() || 'unknown'
         this.log('warn', `Disconnected: code=${code} reason=${reasonStr}`)
+        this.stopPingInterval()
         this.ws = null
         this.options.onDisconnect?.(reasonStr)
 
@@ -115,6 +152,7 @@ export class LocalClient {
 
   disconnect() {
     this.shouldReconnect = false
+    this.stopPingInterval()
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout)
       this.reconnectTimeout = null
